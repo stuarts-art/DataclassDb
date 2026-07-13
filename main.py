@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from typing import Annotated
 
 from dataclassdb import DataclassDb
+from dataclassdb.constants import SQL
 
 logger = logging.getLogger(__name__)
 
@@ -47,9 +48,9 @@ class User:
     while `items` is being encoded and decoded as json list strings.
     """
 
-    id: Annotated[int | None, "PRIMARY KEY"]
-    username: Annotated[str, "UNIQUE"]
-    data: Annotated[list[int], "BLOB"] = field(default_factory=list)
+    id: Annotated[int | None, SQL.PRIMARY]
+    username: Annotated[str, SQL.UNIQUE]
+    data: Annotated[list[int], SQL.BLOB] = field(default_factory=list)
     items: list[str] = field(default_factory=list)
 
 

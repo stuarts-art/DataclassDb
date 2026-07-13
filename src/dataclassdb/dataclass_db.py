@@ -5,6 +5,7 @@ from typing import Any, TypeVar
 
 from dataclassdb.builders.query_builder import QueryBuilder
 from dataclassdb.dataclass_sqlite_table import get_class_codec
+from dataclassdb.constants import SQL
 
 # from dataclassdb.types import T
 from dataclassdb.dataclass_types import IsDataclass
@@ -275,7 +276,7 @@ class DataclassDb(QueryBuilder):
                 f.sql_col_def(len(self.primary_keys) > 1, len(self.unique) > 1)
             )
         if len(self.primary_keys) > 1:
-            params.append(f"PRIMARY KEY({', '.join(self.primary_keys)})")
+            params.append(f"{SQL.PRIMARY_KEY}({', '.join(self.primary_keys)})")
         if len(self.unique) > 1:
-            params.append(f"UNIQUE({', '.join(self.unique)})")
+            params.append(f"{SQL.UNIQUE}({', '.join(self.unique)})")
         return params
