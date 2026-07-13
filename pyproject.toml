@@ -1,0 +1,33 @@
+[project]
+name = "dataclassdb"
+version = "0.1.0"
+description = "This module provides a lightweight sqlite3 ORM using normal dataclass."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["dacite>=1.9.2"]
+license = "MIT"
+authors = [{ name = "@stuarts-art", email = "stuartsartemail@gmail.com" }]
+maintainers = [{ name = "@stuarts-art", email = "stuartsartemail@gmail.com" }]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Database :: Front-Ends",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+keywords = ["dataclasses", "sqlite3", "orm"]
+
+
+[project.urls]
+Repository = "https://github.com/stuarts-art/DataclassDb"
+
+
+[dependency-groups]
+dev = ["pytest>=9.1.1", "pytest-cov>=7.1.0", "ruff>=0.15.20"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
