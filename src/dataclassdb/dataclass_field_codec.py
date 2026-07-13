@@ -8,18 +8,14 @@ from typing import Any, TypeVar, Union, get_args, get_origin
 import dacite
 
 from dataclassdb.dataclass_types import Codec, IsDataclass
-from dataclassdb.utils import is_enum_class, is_strenum
+from dataclassdb.utils import get_absolute_origin, is_enum_class, is_strenum
 
 logger = logging.getLogger(__name__)
 
 DataclassT = TypeVar("DataclassT", bound=IsDataclass)
 T = TypeVar("T")
 def create_field_codec(field_class: T, sql_type: str) -> Codec:
-    if origin := get_origin(field_class):
-        if origin is Union:
-            field_class = get_args(field_class)[0]
-        else:
-            field_class = origin
+    field_class = get_absolute_origin(field_class)
 
     if sql_type == "BLOB":
         if dataclasses.is_dataclass(field_class):

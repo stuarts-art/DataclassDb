@@ -9,6 +9,7 @@ from typing import Annotated, Union, get_args, get_origin
 from dataclassdb.builders.query_builder import QueryBuilder
 from dataclassdb.dataclass_field_codec import create_field_codec
 from dataclassdb.dataclass_types import Codec
+from dataclassdb.utils import get_absolute_origin
 
 logger = logging.getLogger(__name__)
 
@@ -135,31 +136,18 @@ class DataclassSqliteField:
         if self.type_override:
             return
 
-        if origin := get_origin(field_type):
-            if origin is Union:
-                field_type = get_args(field_type)[0]
-                self.origin = field_type
-            else:
-                field_type = origin
-                self.origin = field_type
+        self.origin = get_absolute_origin(field_type)
 
-        if inspect.isclass(self.type) and issubclass(field_type, set):
+        if inspect.isclass(self.origin) and issubclass(self.origin, set):
             raise TypeError(
                 "Sets cannot be encoded as text. Either override the type to BLOB, "
                 "override the codec, or change the datatype."
             )
 
         for mapped_type in self._type_map:
-            if issubclass(field_type, mapped_type):
-                # if isinstance(field_type, mapped_type):
-                # if issubclass(field_type, mapped_type):
+            if issubclass(self.origin, mapped_type):
                 self.sql_type = self._type_map[mapped_type]
                 break
-            # if inspect.isclass(field_type):
-            # else:
-            #     if isinstance(field_type, mapped_type):
-            #         self.sql_type = self._type_map[mapped_type]
-            #         break
 
     def parse_default(self, dc_field):
         if dc_field.default_factory is not MISSING:

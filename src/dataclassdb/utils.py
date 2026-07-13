@@ -2,7 +2,7 @@ import logging
 import sqlite3
 from dataclasses import dataclass
 from enum import Enum, StrEnum
-from typing import Any, ClassVar
+from typing import Annotated, Any, ClassVar, Union, get_args, get_origin
 
 import dacite
 
@@ -15,6 +15,18 @@ class UpperStrEnum(StrEnum):
         name: str, start: int, count: int, last_values: list[Any]
     ) -> Any:
         return name.upper().replace("_", " ")
+
+
+def get_absolute_origin(field_type):
+    if origin := get_origin(field_type):
+        args = get_args(field_type)
+        if origin is Union:
+            return get_absolute_origin(args[0])
+        elif origin is Annotated:
+            return get_absolute_origin(args[0])
+        else:
+            return origin
+    return field_type
 
 
 def table_exists(connection: sqlite3.Connection, table_name):

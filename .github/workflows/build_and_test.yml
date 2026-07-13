@@ -6,7 +6,6 @@ jobs:
     name: 
     strategy:
       matrix:
-        # os: [ubuntu-latest, windows-latest, macos-latest]
         python-versions:
           - "3.11"
           - "3.12"
@@ -46,17 +45,3 @@ jobs:
           # Use unique artifact names per OS to avoid overwriting files
           name: pypi-artifacts-${{ matrix.python-versions }}
           path: dist/*
-
-  publish-pypi:
-    name: Publish to PyPI
-    needs: [build-and-test] # Ensures publishing only happens if all builds succeed
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download all built artifacts
-        uses: actions/download-artifact@v4
-        with:
-          # Merges all OS-specific directories back into a single dist/ folder
-          path: dist
-          pattern: pypi-artifacts-*
-          merge-multiple: true

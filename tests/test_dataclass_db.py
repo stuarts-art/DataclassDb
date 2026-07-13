@@ -16,7 +16,7 @@ class Example_Dataclass:
     score: int = 0
     tags: Annotated[list, "TEXT"] = field(default_factory=list)
     connections: Annotated[dict, "BLOB"] = field(default_factory=dict)
-
+    extras: list[str] | None = None
 
 @dataclass
 class XOR_Example_Dataclass:
