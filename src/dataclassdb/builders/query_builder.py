@@ -107,7 +107,21 @@ class QueryBuilder(DbEngine, StatementBuilder, FunctionBuilder):
         if not row:
             return []
 
-        cols = row[0].split("(", 1)[-1].rsplit(")", 1)[0].split(",")
+        cols_str: str = row[0].split("(", 1)[-1].rsplit(")", 1)[0]
+        cols = []
+        l_count = 0
+        last = 0
+        for i in range(len(cols_str)):
+            c = cols_str[i]
+            if c == "(":
+                l_count += 1
+            elif c == ")":
+                l_count -= 1
+            elif c == "," and l_count == 0:
+                cols.append(cols_str[last:i])
+                last = i + 1
+        if last < len(cols_str):
+            cols.append(cols_str[last:])
         cols = [col.replace("\n", "").strip() for col in cols]
         return cols
 
