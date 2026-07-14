@@ -252,7 +252,7 @@ class DataclassDb(QueryBuilder):
                 )
                 self.execute_script(sql_script=str(query))
             logger.info(
-                "Table creation for %s successful.", self.table_name, overlapping_fields
+                "Table creation for %s successful with overlapping fields %s", self.table_name, overlapping_fields
             )
         else:
             logger.info("Table has not changed.")

@@ -23,7 +23,7 @@ def main():
             users[i] = user
             inserted = db.insert(user)
             if inserted:
-                logger.info("User %s was inserted", *inserted)
+                logger.info("User %s was inserted", inserted)
         # file is closed by the context manager.
 
     with DataclassDb(User, "main.db") as db:
@@ -48,7 +48,7 @@ class User:
     while `items` is being encoded and decoded as json list strings.
     """
 
-    id: Annotated[int | None, SQL.PRIMARY]
+    id: Annotated[int | None, SQL.PRIMARY_KEY]
     username: Annotated[str, SQL.UNIQUE]
     data: Annotated[list[int], SQL.BLOB] = field(default_factory=list)
     items: list[str] = field(default_factory=list)
