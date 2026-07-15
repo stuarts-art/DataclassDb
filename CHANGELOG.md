@@ -1,26 +1,40 @@
 # Changelog
 
+* DataclassDb is still in Beta. On release, this section may be consolidated.
+
 ## [Unreleased]
+
+## [0.1.4] - 2026-07-15
+
+### New Feature
+
+- [Issue 3] - Added `execute_many` and `insert_many`.
+  * [unit tests](https://github.com/stuarts-art/DataclassDb/blob/5d44cbad2f3a5e9251a6735de92e55b72d1bc371/tests/test_dataclass_db.py#L264-L297)
+  * 100% Coverage, 100% tests passed [Test Job](https://github.com/stuarts-art/DataclassDb/actions/runs/29433673472/job/87414775773)
 
 ## [0.1.3] - 2026-07-14
 
 ### Fixed
 
-- [Issue 2](https://github.com/stuarts-art/DataclassDb/issues/2) Fixed bug where tables would always be overwritten if there were table constraints.
+* [Issue 2] - Fixed bug where tables would always be overwritten if there were table constraints.
 
 ## [0.1.2] - 2026-07-14
 
 ### Fixed
 
-- Fixed logger bug causing table creation to fail.
+* Fixed logger bug causing table creation to fail.
 
 ## [0.1.1] - 2026-07-13
 
 ### Fixed
 
-- [Issue 1](https://github.com/stuarts-art/DataclassDb/issues/1) Added support for nested origin types
+* [Issue 1] - Added support for nested origin types
 
-[Unreleased]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.3..v0.1.4
 [0.1.3]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.2..v0.1.3
 [0.1.2]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.1..v0.1.2
 [0.1.1]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.0...v0.1.1
+[Issue 1]: https://github.com/stuarts-art/DataclassDb/issues/1
+[Issue 2]: https://github.com/stuarts-art/DataclassDb/issues/2
+[Issue 3]: https://github.com/stuarts-art/DataclassDb/issues/3

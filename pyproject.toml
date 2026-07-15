@@ -1,6 +1,6 @@
 [project]
 name = "dataclassdb"
-version = "0.1.3"
+version = "0.1.4"
 description = "This module provides a lightweight sqlite3 ORM using normal dataclass."
 readme = "README.md"
 requires-python = ">=3.11"
