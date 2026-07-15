@@ -8,7 +8,7 @@ from dataclassdb.db_engine import DbEngine
 def test_connector(db_mem_connection):
 
     db = DbEngine(db_mem_connection)
-    assert db.has_connection
+    assert db.connection
     assert isinstance(db.connection, sqlite3.Connection)
 
 

@@ -7,6 +7,7 @@ import pytest
 from dataclassdb.builders.query_builder import QueryBuilder
 from dataclassdb.dataclass_db import DataclassDb
 from dataclassdb.dataclass_sqlite_table import decode_dict
+from dataclassdb.db_engine import DbEngine
 
 
 @dataclass
@@ -17,6 +18,7 @@ class Example_Dataclass:
     tags: Annotated[list, "TEXT"] = field(default_factory=list)
     connections: Annotated[dict, "BLOB"] = field(default_factory=dict)
     extras: list[str] | None = None
+
 
 @dataclass
 class XOR_Example_Dataclass:
@@ -240,7 +242,6 @@ def test_single_decode_dict(db_mem_connection):
         decode_dict(output)
 
 
-
 def test_overwrite_table(db_mem_connection):
     table_name = "example"
 
@@ -258,3 +259,39 @@ def test_overwrite_table(db_mem_connection):
 
 def test_None_identity(db_mem_connection):
     assert None is decode_dict(None, Example_Dataclass)
+
+
+def test_insert_many(db_mem_connection):
+    items = []
+    for i in range(10):
+        items.append(XOR_Example_Dataclass(i, f"name {i}", i))
+
+    with DataclassDb(XOR_Example_Dataclass, db_mem_connection) as db:
+        db.insert_many(items)
+
+
+def test_insert_many_failure(db_mem_connection):
+
+    with pytest.raises(ConnectionError):
+        db = DbEngine()
+        db.execute_many()
+
+    with pytest.raises(ValueError):
+        db = DbEngine(db_mem_connection)
+        db.execute_many()
+
+
+def test_insert_many_with_no_newline(db_mem_connection):
+
+    with DataclassDb(XOR_Example_Dataclass, db_mem_connection) as db:
+        items = []
+        for i in range(10):
+            items.append(
+                (
+                    i,
+                    f"name {i}",
+                    i * i,
+                )
+            )
+        query = "INSERT INTO XOR_Example_Dataclass (pid, name, points) VALUES (?, ?, ?)"
+        db.execute_many(*items, sql_str=query)

@@ -68,7 +68,7 @@ def test_raise_error_when_connection_not_set():
 
 def test_connect_to_db(db_mem_connection):
     builder = QueryBuilder(db_mem_connection)
-    assert builder.has_connection
+    assert builder.connection
     assert isinstance(builder.connection, sqlite3.Connection)
 
     table_query = builder.get_curr_cols("testing")

@@ -10,16 +10,14 @@ logger = logging.getLogger()
 class DbEngine(StringBuilder):
     def __init__(
         self,
-        connection: sqlite3.Connection | str = "",  # type: ignore
+        connection: sqlite3.Connection | str = None,  # type: ignore
         **kwargs,
     ):
-        self.connection: sqlite3.Connection
+        self.connection: sqlite3.Connection = None
         self.connection_owner = False
-        self.has_connection = False
         self.connection_name = ""
 
         if connection:
-            self.has_connection = True
             if isinstance(connection, sqlite3.Connection):
                 self.connection = connection
             else:
@@ -33,12 +31,12 @@ class DbEngine(StringBuilder):
         # super(DbExecutor, self).__init__()
 
     def __enter__(self):
-        if not self.has_connection:
+        if not self.connection:
             raise ValueError("Connection must be set to use context manager")
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.connection_owner and self.has_connection:
+        if self.connection_owner and self.connection:
             logger.info("Committing DB.")
             self.connection.commit()
             logger.info("Closing DB.")
@@ -56,7 +54,7 @@ class DbEngine(StringBuilder):
         )
 
     def execute_script(self, sql_script=None, as_dict=False, commit=False):
-        if not self.has_connection:
+        if not self.connection:
             raise ValueError("Connection must be set to use sql commands.")
 
         try:
@@ -82,7 +80,7 @@ class DbEngine(StringBuilder):
     def execute(
         self, *args, sql_str=None, commit=False, single_row=False, as_dict=False
     ):
-        if not self.has_connection:
+        if not self.connection:
             raise ValueError("Connection must be set to use sql commands.")
         try:
             params = tuple(args) if args else ()
@@ -122,5 +120,35 @@ class DbEngine(StringBuilder):
             if commit:
                 self.connection.commit()
             return rows
+        finally:
+            self.clear
+
+    def execute_many(self, *args, sql_str=None):
+        if not self.connection:
+            raise ConnectionError("Connection must be set to use sql commands.")
+        try:
+            params = tuple(args) if args else ()
+            if sql_str is None:
+                query_str = str(self)
+            else:
+                query_str = str(sql_str)
+
+            if not query_str:
+                raise ValueError("Query is empty")
+
+            cur = self.connection.cursor()
+
+            if "\n" in query_str:
+                logger.debug(
+                    "Executing Many Query: \n    %s", query_str.replace("\n", "\n    ")
+                )
+                logger.debug(
+                    "Using Params   :\n    %s", "\n    ".join(map(str, params))
+                )
+            else:
+                logger.debug("Executing Many Query: %s", query_str)
+                logger.debug("Using Params   : %s", params)
+
+            cur.executemany(sql_str, args)
         finally:
             self.clear

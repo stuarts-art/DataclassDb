@@ -7,7 +7,6 @@ from dataclassdb.builders.query_builder import QueryBuilder
 from dataclassdb.dataclass_sqlite_table import get_class_codec
 from dataclassdb.constants import SQL
 
-# from dataclassdb.types import T
 from dataclassdb.dataclass_types import IsDataclass
 from dataclassdb.utils import table_exists
 
@@ -33,7 +32,8 @@ class DataclassDb(QueryBuilder):
             raise ConnectionError("Connection must be set.")
         self.data_class = data_class
         self.table_name = table_name if table_name else data_class.__name__
-        self.insert_query = None
+        self._insert_query = None
+        self.query_map = {}
         self.primary_keys = []
         self.unique = []
         self.codec = get_class_codec(data_class)
@@ -63,6 +63,40 @@ class DataclassDb(QueryBuilder):
 
     def __setitem__(self, key, value) -> DataclassT:
         self.insert(value)
+
+    def insert_query(self, *field_names, returning=True):
+        key = (
+            "insert_query",
+            field_names,
+            returning,
+        )
+        if key not in self.query_map:
+            query = (
+                QueryBuilder()
+                .INSERT.INTO(self.table_name)
+                .par(*field_names)
+                .br.VALUES.placeholders(*field_names)
+            )
+            if self.primary_keys:
+                if len(self.primary_keys) < len(self.codec.class_fields):
+                    (
+                        query.br.ON.CONFLICT.par(*self.primary_keys).br.DO.UPDATE.SET(
+                            *[
+                                f"{col} = excluded.{col}"
+                                for col in field_names
+                                if col not in self.primary_keys
+                            ]
+                        )
+                    )
+                else:
+                    query.ON.CONFLICT.par(*self.primary_keys).DO.NOTHING
+                if returning:
+                    query.br.RETURNING(*self.primary_keys)
+            else:
+                if returning:
+                    query.br.RETURNING("rowid")
+            self.query_map[key] = str(query)
+        return self.query_map[key]
 
     def key_match_str(self):
         return " AND ".join([f"{key} = ?" for key in self.primary_keys])
@@ -96,32 +130,19 @@ class DataclassDb(QueryBuilder):
 
     def insert(self, item: DataclassT):
         params = self.codec.encode(item, as_tuple=False, ignore_none=True)
-
         field_names = params.keys()
-        query = (
-            QueryBuilder()
-            .INSERT.INTO(self.table_name)
-            .par(*field_names)
-            .br.VALUES.placeholders(*field_names)
+        return self.execute_one(
+            *params.values(), sql_str=self.insert_query(*field_names)
         )
-        if self.primary_keys:
-            if len(self.primary_keys) < len(self.codec.class_fields):
-                (
-                    query.br.ON.CONFLICT.par(*self.primary_keys).br.DO.UPDATE.SET(
-                        *[
-                            f"{col} = excluded.{col}"
-                            for col in field_names
-                            if col not in self.primary_keys
-                            # and col not in self.codec.on_conflict_ignore
-                        ]
-                    )
-                )
-            else:
-                query.ON.CONFLICT.par(*self.primary_keys).DO.NOTHING
-            query.br.RETURNING(*self.primary_keys)
-        else:
-            query.br.RETURNING("rowid")
-        return self.execute_one(*params.values(), sql_str=query)
+
+    def insert_many(self, items: list[DataclassT]):
+        encoded = [
+            self.codec.encode(item, as_tuple=True, ignore_none=False) for item in items
+        ]
+        field_names = self.codec.class_fields.keys()
+        return self.execute_many(
+            *encoded, sql_str=self.insert_query(*field_names, returning=False)
+        )
 
     def get(
         self, key, select_fields: list[str] = None, as_dict=False, as_tuple=False
@@ -252,7 +273,9 @@ class DataclassDb(QueryBuilder):
                 )
                 self.execute_script(sql_script=str(query))
             logger.info(
-                "Table creation for %s successful with overlapping fields %s", self.table_name, overlapping_fields
+                "Table creation for %s successful with overlapping fields %s",
+                self.table_name,
+                overlapping_fields,
             )
         else:
             logger.info("Table has not changed.")

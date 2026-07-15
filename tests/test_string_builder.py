@@ -26,7 +26,6 @@ def test_add(inputs, expected, kwargs):
     assert str(builder) == expected
 
 
-
 @pytest.mark.parametrize(
     "inputs, expected",
     [
@@ -39,8 +38,6 @@ def test_add_func(inputs, expected):
     builder = StringBuilder()
     builder.add_func(*inputs)
     assert str(builder) == expected
-
-
 
 
 def test_string_builder_call():
@@ -83,8 +80,6 @@ def test_string_builder_call():
     builder.add("Hello World", newline=True)
     builder.clear
     builder.add(newline=True)
-
-
 
 
 def test_show(capsys):

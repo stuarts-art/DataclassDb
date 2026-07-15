@@ -4,6 +4,7 @@ import pytest
 
 from dataclassdb.dataclass_db import DataclassDb
 
+
 @dataclass
 class NoPrimary:
     name: str
@@ -13,8 +14,6 @@ class NoPrimary:
 
 def test_no_primary(db_mem_connection):
     with DataclassDb(NoPrimary, db_mem_connection) as db:
-        # db.get(row_id)
-        
         for i in range(10):
             obj = NoPrimary("test", i, i)
             row_id = db.insert(obj)[0]
@@ -31,11 +30,6 @@ def test_no_primary(db_mem_connection):
 
         assert db.peek(select_fields=["name"], as_dict=True) == {"name": "test"}
         assert db.peek(select_fields=["name"], as_tuple=True) == ("test",)
-        # assert db.peek() == 
         assert db.peek() == db.get(None)
-        for i in range(1,9):
+        for i in range(1, 9):
             assert db.peek(i) == db.get(i)
-
-
-
-
