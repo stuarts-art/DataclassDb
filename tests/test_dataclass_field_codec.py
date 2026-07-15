@@ -187,15 +187,12 @@ def test_json_dataclass_codec(db_mem_connection):
             zip: str
 
     person = Person(
-        "stuart", 59, Person.Address("adrr", "test town", "SC", "12345-12345")
+        "stuart", 59, Person.Address("address", "test town", "SC", "12345-12345")
     )
     person_dict = asdict(person)
     assert person_dict
 
-    # address_codec = get_
     address_codec = get_field_codec(Person, "address")
-    # assert isinstance(address_codec.codec, DataclassJsonCodec)
-
     encoded = address_codec.encode(person.address)
     assert encoded == address_codec.encode(asdict(person.address))
 
@@ -219,4 +216,3 @@ def test_json_dataclass_codec(db_mem_connection):
 def test_None_Identity(codec):
     codec.encode(None)
     codec.decode(None)
-    pass

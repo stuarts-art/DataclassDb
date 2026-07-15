@@ -114,58 +114,7 @@ class TestInt:
             assert "test_0" in db.codec.class_fields
             assert "test_1" in db.codec.class_fields
             assert "test_2" in db.codec.class_fields
-
             assert "test_10" in db.codec.class_fields
             assert "test_11" in db.codec.class_fields
-
             assert "test_20" in db.codec.class_fields
             assert "test_21" in db.codec.class_fields
-
-        # test_10: TestEnum_0
-        # test_11: TestEnum_0 | None
-        # test_12: Annotated[TestEnum_0, "BLOB"]
-
-
-#     expected_type_codecs =
-#     [
-#         ("test_00", ("INTEGER", IdentityCodec)),
-#         ("test_01", ("INTEGER", IdentityCodec)),
-#         ("test_02", ("BLOB", PickleCodec)),
-#         ("test_03", ("TEXT", JsonCodec)),
-#         ("test_10", ("INTEGER", EnumCodec)),
-#         ("test_11", ("INTEGER", EnumCodec)),
-#         ("test_12", ("BLOB", PickleCodec)),
-#     ]
-
-# def test_annotations(db_mem_connection):
-#     sql_type, codec = expected
-
-
-#     @dataclass
-#     class TestClass_0:
-#         test_00: int
-#         test_01: int | None
-#         test_02: Annotated[int, "BLOB"]
-#         test_03: Annotated[int, "TEXT"]
-
-#         test_10: TestEnum_0
-#         test_11: TestEnum_0 | None
-#         test_12: Annotated[TestEnum_0, "BLOB"]
-#         # test_13: Annotated[TestEnum_0, "TEXT"]
-
-#     expected_type_codecs = {
-#         ("test_00", ("INTEGER", IdentityCodec)),
-#         ("test_01", ("INTEGER", IdentityCodec)),
-#         ("test_02", ("BLOB", PickleCodec)),
-#         ("test_03", ("TEXT", JsonCodec)),
-#         ("test_10", ("INTEGER", EnumCodec)),
-#         ("test_11", ("INTEGER", EnumCodec)),
-#         ("test_12", ("BLOB", PickleCodec)),
-#     }
-#     with DataclassDb(TestClass_0, db_mem_connection) as db:
-#         for case, expected in expected_type_codecs.items():
-#             sql_type, codec = expected
-#             assert case in db.codec.class_fields
-#             class_field = db.codec.class_fields[case]
-#             assert class_field.sql_type == sql_type
-#             assert isinstance(class_field.codec, codec)

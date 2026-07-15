@@ -4,7 +4,7 @@ from dataclasses import MISSING, Field, is_dataclass
 from datetime import datetime
 from enum import Enum, StrEnum
 from types import NoneType, UnionType
-from typing import Annotated, Union, get_args, get_origin
+from typing import Annotated, get_args, get_origin
 
 from dataclassdb.builders.query_builder import QueryBuilder
 from dataclassdb.dataclass_field_codec import create_field_codec

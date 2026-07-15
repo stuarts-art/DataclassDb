@@ -17,7 +17,6 @@ class TestDateTextCodec:
         test_01: datetime | None
         test_02: Annotated[datetime | None, "NOT NULL"]
         updated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-        # updated: Annotated[datetime| None, "NOT NULL", "DEFAULT CURRENT_TIMESTAMP"] = None
         created: Annotated[
             datetime | None,
             "NOT NULL",
@@ -38,7 +37,6 @@ class TestDateTextCodec:
             inserted = db.insert(obj_0)
             assert inserted
             print(f"inserted {inserted}")
-            # assert 0 in db
             obj = db.get(0)
             print(f"obj {obj}")
             assert obj.id is not None
@@ -47,7 +45,6 @@ class TestDateTextCodec:
             assert obj.test_02 is not None
             assert obj.updated is not None
             assert obj.created is not None
-            # assert obj.created
             print(obj)
 
             dt = datetime.now(tz=timezone.utc)

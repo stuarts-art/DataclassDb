@@ -3,7 +3,7 @@ import json
 import logging
 import pickle
 from datetime import datetime, timezone
-from typing import Any, TypeVar, Union, get_args, get_origin
+from typing import Any, TypeVar
 
 import dacite
 
@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 
 DataclassT = TypeVar("DataclassT", bound=IsDataclass)
 T = TypeVar("T")
+
+
 def create_field_codec(field_class: T, sql_type: str) -> Codec:
     field_class = get_absolute_origin(field_class)
 

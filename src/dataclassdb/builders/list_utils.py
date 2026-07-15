@@ -3,7 +3,6 @@ from dataclasses import is_dataclass
 __all__ = ["flatten", "add_commas", "add_parenthesis", "add_quotes", "placeholders"]
 
 
-
 def _flatten_generator(*args):
     for arg in args:
         if isinstance(arg, list) | isinstance(arg, tuple):
@@ -41,7 +40,7 @@ def add_quotes(*args):
     return params
 
 
-def placeholders(*args, count = None):
+def placeholders(*args, count=None):
     if count:
         return ["?"] * count
     else:

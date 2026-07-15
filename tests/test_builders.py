@@ -13,7 +13,6 @@ def test_function_builder():
             builder.clear
 
 
-
 def test_statement_builder():
     builder = StatementBuilder()
     for e in [SQL]:
@@ -22,4 +21,3 @@ def test_statement_builder():
             assert method
             assert str(builder) == str(func)
             builder.clear
-
