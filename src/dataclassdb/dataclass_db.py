@@ -16,6 +16,13 @@ DataclassT = TypeVar("DataclassT", bound=IsDataclass)
 
 
 class DataclassDb(QueryBuilder):
+    """DataclassDb provides a context managed interface with sqlite 3 using a dataclass.
+
+    Args:
+        QueryBuilder (_type_): _description_
+    Returns:
+        _type_: _description_
+    """
     primary_key_map: dict[Any, list[str]] = {}
     unique_map: dict[Any, list[str]] = {}
 

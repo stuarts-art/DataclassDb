@@ -27,6 +27,11 @@ Repository = "https://github.com/stuarts-art/DataclassDb"
 
 [dependency-groups]
 dev = ["pytest>=9.1.1", "pytest-cov>=7.1.0", "ruff>=0.15.20"]
+docs = [
+    "sphinx>=9.0.4",
+    "sphinx-copybutton>=0.5.2",
+    "sphinx-inline-tabs>=2025.12.21.14",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
