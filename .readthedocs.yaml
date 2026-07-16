@@ -14,10 +14,10 @@ sphinx:
    configuration: docs/source/conf.py
 
 python:
-   install:
-   -method: uv
-   command: sync
-   groups:
-    - docs
+  install:
+    -method: uv
+    command: sync
+    groups:
+      - docs
         
   
