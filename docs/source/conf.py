@@ -38,5 +38,10 @@ extlinks = {
     "pypi": ("https://pypi.org/project/%s/", "%s"),
 }
 
-html_theme = "alabaster"
+html_theme = "pydata_sphinx_theme"
+
+html_theme_options = {
+    "back_to_top_button": True
+    
+}
 html_static_path = ["_static"]

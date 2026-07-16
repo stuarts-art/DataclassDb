@@ -1,3 +1,9 @@
+"""Field codecs for varying python types and SQL col types.
+
+This module provides field level codecs to encode/decode between python and SQL.
+"""
+
+
 import dataclasses
 import json
 import logging
@@ -17,6 +23,8 @@ T = TypeVar("T")
 
 
 def create_field_codec(field_class: T, sql_type: str) -> Codec:
+    """Creates or retrieves the field codec that matches the python field_class and SQL column sql_type.
+    """
     field_class = get_absolute_origin(field_class)
 
     if sql_type == "BLOB":
@@ -103,6 +111,11 @@ class DataclassPickleCodec(Codec):
 
 class StrEnumCodec(Codec):
     def __init__(self, field_class: T, *args, **kwargs):
+        """Encodes python strenums to SQL text. Decodes SQL text to python strenums.
+
+        Args:
+            field_class (T): StrEnum subclass
+        """
         self.field_class = field_class
 
     def encode(self, data: T) -> str | int:
@@ -118,6 +131,11 @@ class StrEnumCodec(Codec):
 
 class EnumCodec(Codec):
     def __init__(self, field_class: T, *args, **kwargs):
+        """Encodes python enums to SQL integers. Decodes SQL integers to python enums.
+
+        Args:
+            field_class (T): Enum subclass 
+        """
         self.field_class = field_class
 
     def encode(self, data: T) -> str | int:
@@ -132,6 +150,10 @@ class EnumCodec(Codec):
 
 
 class JsonCodec(Codec):
+    """Encodes python objects into JSON. Decodes Json back into a python object.
+    User defined classes and dataclasses are supported if they are json encodable,
+    however decode will not cast the returned value into that type.
+    """
     def encode(self, data: any) -> str:
         if data is None:
             return None
