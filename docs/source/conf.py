@@ -2,11 +2,11 @@
 import sys
 from pathlib import Path
 
-import dataclassdb
+# import dataclassdb
 
-version = dataclassdb.__version__
-release = dataclassdb.__version__
-del dataclassdb
+# version = dataclassdb.__version__
+# release = dataclassdb.__version__
+# del dataclassdb
 
 sys.path.insert(0, str(Path("..", "src")))
 
