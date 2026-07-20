@@ -1,13 +1,5 @@
 from __future__ import annotations
 
-from . import _version
-
-__version__ = _version.__version__
-del _version
-
-
-"""DataclassDb is a lightweight ORM for sqlite3 using dataclasses.
-"""
 from dataclassdb.dataclass_db import DataclassDb as DataclassDb
 from dataclassdb.db_engine import DbEngine as DbEngine
 from dataclassdb.builders.query_builder import QueryBuilder as QueryBuilder
@@ -27,3 +19,6 @@ from dataclassdb.dataclass_sqlite_table import decode_field as decode_field
 from dataclassdb.dataclass_sqlite_table import encode_field as encode_field
 from dataclassdb.dataclass_sqlite_table import get_class_codec as get_class_codec
 from dataclassdb.dataclass_sqlite_table import get_field_codec as get_field_codec
+
+"""DataclassDb is a lightweight ORM for sqlite3 using dataclasses.
+"""

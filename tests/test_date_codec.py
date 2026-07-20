@@ -35,7 +35,7 @@ class TestDateTextCodec:
                 assert class_field.sql_type == "TEXT"
                 assert isinstance(class_field.codec, DatetimeTextCodec)
             inserted = db.insert(obj_0)
-            assert inserted
+            assert inserted is not None
             print(f"inserted {inserted}")
             obj = db.get(0)
             print(f"obj {obj}")
@@ -82,7 +82,7 @@ class TestDateIntegerCodec:
                 assert class_field.sql_type == "INTEGER"
                 assert isinstance(class_field.codec, DatetimeIntCodec)
             inserted = db.insert(obj_0)
-            assert inserted
+            assert inserted is not None
             print(f"inserted {inserted}")
             get_obj = db.get(0)
             assert get_obj
@@ -97,7 +97,7 @@ class TestDateIntegerCodec:
             assert obj_0_changed.updated != obj_0.updated
 
             inserted = db.insert(obj_0_changed)
-            assert inserted
+            assert inserted is not None
             get_changed_obj = db.get(0)
             assert get_changed_obj
 

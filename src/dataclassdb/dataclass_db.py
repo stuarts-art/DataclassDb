@@ -1,12 +1,11 @@
 import logging
 import sqlite3
 from dataclasses import is_dataclass
-from typing import Any, TypeVar
+from typing import Any, Iterable, TypeVar
 
 from dataclassdb.builders.query_builder import QueryBuilder
-from dataclassdb.dataclass_sqlite_table import get_class_codec
 from dataclassdb.constants import SQL
-
+from dataclassdb.dataclass_sqlite_table import encode_field, get_class_codec
 from dataclassdb.dataclass_types import IsDataclass
 from dataclassdb.utils import table_exists
 
@@ -23,6 +22,7 @@ class DataclassDb(QueryBuilder):
     Returns:
         _type_: _description_
     """
+
     primary_key_map: dict[Any, list[str]] = {}
     unique_map: dict[Any, list[str]] = {}
 
@@ -43,30 +43,35 @@ class DataclassDb(QueryBuilder):
         self.query_map = {}
         self.primary_keys = []
         self.unique = []
+        self.field_names = []
         self.codec = get_class_codec(data_class)
         self.connection_name = ""
         for name, _field in self.codec.class_fields.items():
+            self.field_names.append(name)
             if _field.primary_key:
                 self.primary_keys.append(name)
             if _field.unique:
                 self.unique.append(name)
         self.create_or_update_table()
 
-    def __contains__(self, key) -> bool:
+    def __contains__(self, key: int | str | tuple | dict) -> bool:
         try:
-            query = (
-                QueryBuilder()
-                .SELECT(1)
-                .FROM(self.table_name)
-                .WHERE(self.key_match_str())
-                .LIMIT(1)
-            )
-            result = self.execute_one(
-                *self.parse_key(key), sql_str=str(query), as_dict=False
-            )
-            return result is not None
-        finally:
-            self.clear
+            params = self.parse_constraint_dict(key)
+            query = QueryBuilder().SELECT(1).FROM(self.table_name)
+            if params:
+                query.WHERE(self.where_args(*params.keys())).LIMIT(1)
+                result = self.execute_one(
+                    *params.values(), sql_str=str(query), as_dict=False
+                )
+                return result is not None
+            elif isinstance(key, int):
+                query.WHERE("rowid").eq("?").LIMIT(1)
+                result = self.execute_one(key, sql_str=str(query), as_dict=False)
+                return result is not None
+            else:
+                return False
+        except Exception:
+            return False
 
     def __setitem__(self, key, value) -> DataclassT:
         self.insert(value)
@@ -84,29 +89,39 @@ class DataclassDb(QueryBuilder):
                 .par(*field_names)
                 .br.VALUES.placeholders(*field_names)
             )
+            if self.unique:
+                if len(self.unique) < len(self.codec.class_fields):
+                    (
+                        query.br.ON.CONFLICT.par(*self.unique).br.DO.UPDATE.SET(
+                            *[
+                                f"{col} = excluded.{col}"
+                                for col in self.field_names
+                                if col not in self.unique
+                            ]
+                        )
+                    )
+                else:
+                    query.ON.CONFLICT.par(*self.unique).DO.NOTHING
             if self.primary_keys:
                 if len(self.primary_keys) < len(self.codec.class_fields):
                     (
                         query.br.ON.CONFLICT.par(*self.primary_keys).br.DO.UPDATE.SET(
                             *[
                                 f"{col} = excluded.{col}"
-                                for col in field_names
+                                for col in self.field_names
                                 if col not in self.primary_keys
                             ]
                         )
                     )
                 else:
                     query.ON.CONFLICT.par(*self.primary_keys).DO.NOTHING
-                if returning:
-                    query.br.RETURNING(*self.primary_keys)
-            else:
-                if returning:
-                    query.br.RETURNING("rowid")
+            if returning:
+                query.br.RETURNING("rowid")
             self.query_map[key] = str(query)
         return self.query_map[key]
 
-    def key_match_str(self):
-        return " AND ".join([f"{key} = ?" for key in self.primary_keys])
+    def where_args(self, *args):
+        return " AND ".join([f"{key} = ?" for key in args])
 
     def get_current_table_query(self) -> str:
         row = (
@@ -121,26 +136,15 @@ class DataclassDb(QueryBuilder):
         )
         return row[0] if row else ""
 
-    def parse_key(self, key):
-        if not isinstance(key, tuple):
-            if isinstance(key, list):
-                key = tuple(key)
-            else:
-                key = (key,)
-        if len(self.primary_keys) != len(key):
-            raise KeyError(
-                "Input of (%s) does not match length of primary key (%s)",
-                key,
-                self.primary_keys,
-            )
-        return key
-
     def insert(self, item: DataclassT):
         params = self.codec.encode(item, as_tuple=False, ignore_none=True)
         field_names = params.keys()
-        return self.execute_one(
+        row = self.execute_one(
             *params.values(), sql_str=self.insert_query(*field_names)
         )
+        if row:
+            return row[0] if len(self.primary_keys) == 1 else row
+        return None
 
     def insert_many(self, items: list[DataclassT]):
         encoded = [
@@ -152,37 +156,83 @@ class DataclassDb(QueryBuilder):
         )
 
     def get(
-        self, key, select_fields: list[str] = None, as_dict=False, as_tuple=False
+        self,
+        key=None,
+        select_fields: list[str] = [],
+        as_dict=False,
+        as_tuple=False,
+        **kwargs,
     ) -> DataclassT:
-        if self.primary_keys == []:
-            return self.peek(key, select_fields, as_dict, as_tuple)
+        """
+        1. establish search
+        2. establish select
+        """
+
         if as_dict and as_tuple:
             raise ValueError("as_dict and as _tuple cannot both be true")
         if select_fields and not as_dict and not as_tuple:
             raise ValueError(
                 "If select fields are provided either as_dict or as_tuple must be true."
             )
-        if not select_fields:
-            field_str = "*"
-        else:
-            field_str = ", ".join(select_fields)
-        query = (
-            QueryBuilder()
-            .SELECT(field_str)
-            .FROM(self.table_name)
-            .WHERE(self.key_match_str())
-        )
-        row_dict: dict = self.execute_one(
-            *self.parse_key(key),
-            sql_str=str(query),
-            as_dict=True,
-        )
+
+        params = self.parse_constraint_dict(key=key, **kwargs)
+
+        if not params:
+            return self.peek(
+                key, select_fields=select_fields, as_dict=as_dict, as_tuple=as_tuple
+            )
+
+        row_dict = self.select_query(*select_fields, as_dict=True, **params)
         as_obj = not (as_tuple or as_dict)
         decoded = self.codec.decode(row_dict, as_obj=as_obj)
         if as_tuple:
             return tuple(decoded.values())
         else:
             return decoded
+
+    def parse_constraint_dict(self, key=None, **kwargs):
+        params = {}
+
+        for k, v in kwargs.items():
+            params[str(k)] = encode_field(self.data_class, k, v)
+
+        if key is not None:
+            if isinstance(key, dict):
+                params |= key
+            elif isinstance(key, Iterable) and not isinstance(key, (str, bytes)):
+                kv_zip = zip(self.primary_keys, key, strict=True)
+                for k, v in kv_zip:
+                    params[str(k)] = encode_field(self.data_class, k, v)
+            else:
+                if len(self.primary_keys) == 0:
+                    pass
+                else:
+                    if len(self.primary_keys) > 1:
+                        raise ValueError(
+                            "The number of keys does not match the number of primary keys."
+                        )
+                    params[str(self.primary_keys[0])] = encode_field(
+                        self.data_class, self.primary_keys[0], key
+                    )
+        return params
+
+    def select_query(self, *args, from_="", as_dict=False, **kwargs):
+        """Selects *args columns with **kwargs conditions.
+
+        Returns:
+            _type_: _description_
+        """
+        qb = QueryBuilder(self.connection)
+        if not args:
+            qb.select("*")
+        else:
+            qb.select(*args)
+        qb.FROM(from_ if from_ else self.table_name)
+        if kwargs:
+            qb.WHERE(self.where_args(*kwargs.keys()))
+            return qb.execute_one(*kwargs.values(), as_dict=as_dict)
+        else:
+            return None
 
     def peek(
         self, rowid=None, select_fields: list[str] = None, as_dict=False, as_tuple=False
@@ -220,8 +270,17 @@ class DataclassDb(QueryBuilder):
             return decoded
 
     def delete(self, key) -> DataclassT:
-        query = QueryBuilder().DELETE.FROM(self.table_name).WHERE(self.key_match_str())
-        self.execute_one(*self.parse_key(key), sql_str=str(query))
+        params = self.parse_constraint_dict(key=key)
+        if params:
+            query = (
+                QueryBuilder()
+                .DELETE.FROM(self.table_name)
+                .WHERE(self.where_args(*params.keys()))
+            )
+            self.execute_one(*params.values(), sql_str=str(query))
+        elif isinstance(key, int) and not self.primary_keys:
+            query = QueryBuilder().DELETE.FROM(self.table_name).WHERE("rowid").eq("?")
+            self.execute_one(key, sql_str=str(query))
 
     def create_or_update_table(self):
         logger.info("Creating or updating table %s", self.table_name)
@@ -246,7 +305,7 @@ class DataclassDb(QueryBuilder):
                     overlapping_fields.append(dc_field)
             temp_table = f"temp_{self.table_name}"
             logger.info(
-                "Attempting to update table on these overlapping fields",
+                "Attempting to update table on these overlapping fields %s, %s",
                 self.table_name,
                 overlapping_fields,
             )

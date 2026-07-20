@@ -31,5 +31,17 @@ def test_no_primary(db_mem_connection):
         assert db.peek(select_fields=["name"], as_dict=True) == {"name": "test"}
         assert db.peek(select_fields=["name"], as_tuple=True) == ("test",)
         assert db.peek() == db.get(None)
-        for i in range(1, 9):
+        for i in range(1, 10):
             assert db.peek(i) == db.get(i)
+            assert {"name": "test", "height": i, "weight": i} in db
+            assert i in db
+
+        assert 15 not in db
+        assert None not in db
+        assert (15, 0) not in db
+
+        assert 1 in db
+        db.delete(1)
+        assert 1 not in db
+
+

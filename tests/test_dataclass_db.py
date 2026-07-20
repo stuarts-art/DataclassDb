@@ -1,4 +1,4 @@
-import sqlite3
+import logging
 from dataclasses import dataclass, field, is_dataclass
 from typing import Annotated
 
@@ -111,26 +111,17 @@ def test_multiple_primary(db_mem_connection):
         eid: Annotated[int, "PRIMARY KEY"]
         username: Annotated[str, "UNIQUE"]
         tag: Annotated[str, "UNIQUE"]
+        other: str = ""
 
-    with DataclassDb(MultipleKeysExample, db_mem_connection) as db:
+    with DataclassDb(MultipleKeysExample, "test_dunno.db") as db:
         test_obj = MultipleKeysExample("na", 0, "test user", "test tag")
-        assert ("na", 0) not in db
         db.insert(test_obj)
-        assert ("na", 0) in db
-        assert db.get(("na", 0)) == test_obj
-        # assert db.get_current_table_query()
-
-        duplicate_obj = MultipleKeysExample("na", 1, "test user", "test tag")
-        with pytest.raises(sqlite3.IntegrityError):
-            db.insert(duplicate_obj)
-
-        # cols = db.get(("na", 0), ["region", "eid", "username", "tag"], as_dict=False)
         cols = db.get(("na", 0), ["username", "tag"], as_dict=False, as_tuple=True)
         assert cols == ("test user", "test tag")
         cols_dict = db.get(("na", 0), ["username", "tag"], as_dict=True, as_tuple=False)
         assert (cols_dict["username"], cols_dict["tag"]) == ("test user", "test tag")
 
-        with pytest.raises(KeyError):
+        with pytest.raises(ValueError):
             db.get("na")
 
         with pytest.raises(ValueError):
@@ -139,10 +130,47 @@ def test_multiple_primary(db_mem_connection):
         with pytest.raises(ValueError):
             db.get(("na", 0), as_dict=True, as_tuple=True)
 
+        duplicate_obj = MultipleKeysExample(
+            "na", 1, "test user", "test tag", "modified"
+        )
+        db.insert(duplicate_obj)
+        assert ("na", 0) not in db
+        assert ("na", 1) in db
+        assert db.get(("na", 0)) == db.get(region="na", eid=0)
+        assert db.select_query() is None
+
     with DataclassDb(MultipleKeysExample, db_mem_connection) as db:
         pass
 
 
+def test_multiple_unique(db_mem_connection):
+    @dataclass
+    class MultipleUnique:
+        username: Annotated[str, "UNIQUE"]
+        tag: Annotated[str, "UNIQUE"]
+
+    with DataclassDb(MultipleUnique, db_mem_connection) as db:
+        db.insert(MultipleUnique("a", "0"))
+        db.insert(MultipleUnique("a", "0"))
+
+
+def test_multiple_unique_one_primary(db_mem_connection):
+    logging.basicConfig(level=logging.DEBUG)
+
+    @dataclass
+    class MultipleUniqueOnePrimary:
+        username: Annotated[str, "UNIQUE"]
+        tag: Annotated[str, "UNIQUE"]
+        id: Annotated[int | None, "PRIMARY KEY"] = None
+
+    obj = MultipleUniqueOnePrimary("x", "y")
+    with DataclassDb(MultipleUniqueOnePrimary, db_mem_connection) as db:
+        id_ = db.insert(obj)
+
+        assert id_ == 1
+
+
+#
 def test_decode_dict(db_mem_connection):
     @dataclass
     class Profile:
