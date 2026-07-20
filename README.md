@@ -1,6 +1,17 @@
-# dataclassdb
+# dataclassdb [BETA]
 
 This module provides a lightweight sqlite3 ORM for dataclasses.
+
+<table>
+    <tr>
+        <th>docs</th>
+        <td>
+<a href="https://dataclassdb.readthedocs.io/?badge=latest"><img
+    alt="Documentation Status"
+    src="https://readthedocs.org/projects/dataclassdb/badge/?version=latest"></a>
+        </td>
+    </tr>
+</table>
 
 ## Installation
 
