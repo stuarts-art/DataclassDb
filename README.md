@@ -1,17 +1,12 @@
 # dataclassdb [BETA]
 
-This module provides a lightweight sqlite3 ORM for dataclasses.
+![](https://img.shields.io/pypi/pyversions/dataclassdb.svg)
+![](https://img.shields.io/pypi/v/dataclassdb)
+[![Downloads](https://pepy.tech/badge/dataclassdb)](https://pepy.tech/project/dataclassdb)
+![](https://readthedocs.org/projects/dataclassdb/badge/?version=latest)
+![](https://img.shields.io/github/license/stuarts-art/dataclassdb.svg)
 
-<table>
-    <tr>
-        <th>docs</th>
-        <td>
-<a href="https://dataclassdb.readthedocs.io/?badge=latest"><img
-    alt="Documentation Status"
-    src="https://readthedocs.org/projects/dataclassdb/badge/?version=latest"></a>
-        </td>
-    </tr>
-</table>
+This module provides a lightweight sqlite3 ORM for dataclasses.
 
 ## Installation
 
