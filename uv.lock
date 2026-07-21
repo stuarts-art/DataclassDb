@@ -241,7 +241,7 @@ wheels = [
 
 [[package]]
 name = "dataclassdb"
-version = "0.1.5"
+version = "0.1.6"
 source = { virtual = "." }
 dependencies = [
     { name = "dacite" },
