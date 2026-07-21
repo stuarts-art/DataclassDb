@@ -83,45 +83,44 @@ class DataclassDb(QueryBuilder):
             returning,
         )
         if key not in self.query_map:
-            query = (
-                QueryBuilder()
-                .INSERT.INTO(self.table_name)
-                .par(*field_names)
-                .br.VALUES.placeholders(*field_names)
+            uniques_in_fields = [x for x in self.unique if x in field_names]
+            primaries_in_fields = [x for x in self.primary_keys if x in field_names]
+
+            query = QueryBuilder()
+            query.INSERT.INTO(self.table_name).par(*field_names).VALUES.placeholders(
+                *field_names
             )
-            if self.unique:
-                if len(self.unique) < len(self.codec.class_fields):
-                    (
-                        query.br.ON.CONFLICT.par(*self.unique).br.DO.UPDATE.SET(
-                            *[
-                                f"{col} = excluded.{col}"
-                                for col in self.field_names
-                                if col not in self.unique
-                            ]
-                        )
+
+            if self.unique and len(uniques_in_fields) == len(self.unique):
+                query.br.ON.CONFLICT(*self.unique, par=True).br
+                cols = [col for col in field_names if col not in self.unique]
+                if len(cols) > 0:
+                    query.DO.UPDATE.SET(*[f"{col} = excluded.{col}" for col in cols])
+                elif returning:
+                    query.DO.UPDATE.SET(f"{self.unique[0]} = {self.unique[0]}")
+                else:
+                    query.DO.NOTHING
+
+            if self.primary_keys and len(primaries_in_fields) == len(self.primary_keys):
+                query.br.ON.CONFLICT(*self.primary_keys, par=True).br
+                cols = [col for col in field_names if col not in self.primary_keys]
+                if len(cols) > 0:
+                    query.DO.UPDATE.SET(*[f"{col} = excluded.{col}" for col in cols])
+                elif returning:
+                    query.DO.UPDATE.SET(
+                        f"{self.primary_keys[0]} = {self.primary_keys[0]}"
                     )
                 else:
-                    query.ON.CONFLICT.par(*self.unique).DO.NOTHING
-            if self.primary_keys:
-                if len(self.primary_keys) < len(self.codec.class_fields):
-                    (
-                        query.br.ON.CONFLICT.par(*self.primary_keys).br.DO.UPDATE.SET(
-                            *[
-                                f"{col} = excluded.{col}"
-                                for col in self.field_names
-                                if col not in self.primary_keys
-                            ]
-                        )
-                    )
-                else:
-                    query.ON.CONFLICT.par(*self.primary_keys).DO.NOTHING
+                    query.DO.NOTHING
             if returning:
-                query.br.RETURNING("rowid")
+                ret_fields = self.primary_keys if self.primary_keys else ["rowid"]
+                query.br.RETURNING(*ret_fields)
+
             self.query_map[key] = str(query)
         return self.query_map[key]
 
     def where_args(self, *args):
-        return " AND ".join([f"{key} = ?" for key in args])
+        return " AND ".join([f"{key} = ?{i}" for i, key in enumerate(args, start=1)])
 
     def get_current_table_query(self) -> str:
         row = (
@@ -144,7 +143,6 @@ class DataclassDb(QueryBuilder):
         )
         if row:
             return row[0] if len(self.primary_keys) == 1 else row
-        return None
 
     def insert_many(self, items: list[DataclassT]):
         encoded = [

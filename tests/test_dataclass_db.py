@@ -166,11 +166,31 @@ def test_multiple_unique_one_primary(db_mem_connection):
     obj = MultipleUniqueOnePrimary("x", "y")
     with DataclassDb(MultipleUniqueOnePrimary, db_mem_connection) as db:
         id_ = db.insert(obj)
-
         assert id_ == 1
 
+        id_ = db.insert(obj)
+        assert id_ == 1
 
-#
+        # Change Primary if uniques are provided
+        obj = MultipleUniqueOnePrimary("x", "y", 4)
+        assert 1 in db
+        id_ = db.insert(obj)
+        assert 1 not in db
+        assert id_ == 4
+
+        # # Change unique fields if primary provided
+        obj = MultipleUniqueOnePrimary("x2", "y", 4)
+        db.insert(obj)
+        assert db.get(4).username == "x2"
+
+        objs = [
+            MultipleUniqueOnePrimary("foo", "f"),
+            MultipleUniqueOnePrimary("bar", "b"),
+            MultipleUniqueOnePrimary("baz", "ba"),
+        ]
+        db.insert_many(objs)
+
+
 def test_decode_dict(db_mem_connection):
     @dataclass
     class Profile:
@@ -323,3 +343,63 @@ def test_insert_many_with_no_newline(db_mem_connection):
             )
         query = "INSERT INTO XOR_Example_Dataclass (pid, name, points) VALUES (?, ?, ?)"
         db.execute_many(*items, sql_str=query)
+
+
+def test_insert_many_multi_primary_only(db_mem_connection):
+    @dataclass
+    class PrimaryTest:
+        par_1: Annotated[str, "PRIMARY KEY"]
+        par_2: Annotated[str, "PRIMARY KEY"]
+
+    student_a = PrimaryTest("A", "a")
+    student_b = PrimaryTest("B", "b")
+    student_c = PrimaryTest("C", "c")
+
+    with DataclassDb(PrimaryTest, db_mem_connection) as db:
+        db.insert(student_a)
+        assert ("A", "a") in db
+        db.insert(student_b)
+        assert ("B", "b") in db
+        db.insert(student_c)
+        assert ("C", "c") in db
+
+    with DataclassDb(PrimaryTest, db_mem_connection) as db:
+        db.insert_many([student_a, student_b, student_c])
+        assert ("A", "a") in db
+        assert ("B", "b") in db
+        assert ("C", "c") in db
+
+
+def test_insert_many_multi_unique_only(db_mem_connection):
+    @dataclass
+    class UniqueTest:
+        par_1: Annotated[str, "UNIQUE"]
+        par_2: Annotated[str, "UNIQUE"]
+
+    test_a = UniqueTest("A", "a")
+    test_b = UniqueTest("B", "b")
+    test_c = UniqueTest("C", "c")
+
+    with DataclassDb(UniqueTest, db_mem_connection) as db:
+        db.insert(test_a)
+        assert 1 in db
+        assert db.get(1) == test_a
+
+        db.insert(test_b)
+        assert 2 in db
+        assert db.get(2) == test_b
+
+        db.insert(test_c)
+        assert 3 in db
+        assert db.get(3) == test_c
+
+    with DataclassDb(UniqueTest, db_mem_connection) as db:
+        db.insert_many([test_a, test_b, test_c])
+        assert 1 in db
+        assert db.get(1) == test_a
+
+        assert 2 in db
+        assert db.get(2) == test_b
+
+        assert 3 in db
+        assert db.get(3) == test_c

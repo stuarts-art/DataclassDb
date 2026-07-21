@@ -47,11 +47,11 @@ def test_query_builder():
     builder.clear
 
     builder("x").placeholders("2")
-    assert builder == "x (?)"
+    assert builder == "x (?1)"
     builder.clear
 
     builder("x").placeholders("2", par=False)
-    assert builder == "x ?"
+    assert builder == "x ?1"
     builder.clear
 
     builder.SELECT("*").FROM("Table")

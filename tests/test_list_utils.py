@@ -13,7 +13,7 @@ import dataclassdb.builders.list_utils as lu
         (lu.add_parenthesis, ["a"], ["(a)"]),
         (lu.add_parenthesis, [], ["()"]),
         (lu.add_quotes, ["a", "b", "c", "d"], ['"a"', '"b"', '"c"', '"d"']),
-        (lu.placeholders, [1, 2, 3, 4, 5], ["?", "?", "?", "?", "?"]),
+        (lu.placeholders, [1, 2, 3, 4, 5], ["?1", "?2", "?3", "?4", "?5"]),
         (lu.placeholders, [], []),
     ],
 )
@@ -25,9 +25,9 @@ def test_flatten(method, inputs, expected):
 @pytest.mark.parametrize(
     "input, expected",
     [
-        (1, ["?"]),
-        (2, ["?", "?"]),
-        (5, ["?", "?", "?", "?", "?"]),
+        (1, ["?1"]),
+        (2, ["?1", "?2"]),
+        (5, ["?1", "?2", "?3", "?4", "?5"]),
     ],
 )
 def test_placeholders(input, expected):

@@ -41,7 +41,7 @@ def add_quotes(*args):
 
 
 def placeholders(*args, count=None):
-    if count:
-        return ["?"] * count
-    else:
-        return ["?"] * len(flatten(*args)) if args else []
+    if count is None:
+        count = len(flatten(args))
+
+    return [f"?{i + 1}" for i in range(count)]
