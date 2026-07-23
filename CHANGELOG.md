@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-07-23
+- Add get_all
+
+
 ## [0.1.6] - 2026-07-20
 
 - Fixed bug where primary generated primary key would be regenerated for repeat unique inserts.
@@ -46,7 +50,8 @@
 
 * [Issue 1] - Added support for nested origin types
 
-[Unreleased]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.6...HEAD
+[Unreleased]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.7...HEAD
+[0.1.7]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.5..v0.1.7
 [0.1.6]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.5..v0.1.6
 [0.1.5]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.4..v0.1.5
 [0.1.4]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.3..v0.1.4
