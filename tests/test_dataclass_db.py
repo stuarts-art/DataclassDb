@@ -312,10 +312,16 @@ def test_None_identity(db_mem_connection):
 def test_insert_many(db_mem_connection):
     items = []
     for i in range(10):
-        items.append(XOR_Example_Dataclass(i, f"name {i}", i))
+        items.append(XOR_Example_Dataclass(i, f"name {i}", 5))
 
     with DataclassDb(XOR_Example_Dataclass, db_mem_connection) as db:
         db.insert_many(items)
+        gotten = db.get_all(points=5)
+        assert gotten == items
+
+        tuple_rows = db.get_all(points=5, as_tuple=True)
+        for row in tuple_rows:
+            assert row[2] == 5
 
 
 def test_insert_many_failure(db_mem_connection):

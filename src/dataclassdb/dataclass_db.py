@@ -159,6 +159,7 @@ class DataclassDb(QueryBuilder):
         select_fields: list[str] = [],
         as_dict=False,
         as_tuple=False,
+        single_row=True,
         **kwargs,
     ) -> DataclassT:
         """
@@ -180,13 +181,46 @@ class DataclassDb(QueryBuilder):
                 key, select_fields=select_fields, as_dict=as_dict, as_tuple=as_tuple
             )
 
-        row_dict = self.select_query(*select_fields, as_dict=True, **params)
-        as_obj = not (as_tuple or as_dict)
-        decoded = self.codec.decode(row_dict, as_obj=as_obj)
-        if as_tuple:
-            return tuple(decoded.values())
+        row_dict = self.select_query(*select_fields, as_dict=True, single_row=single_row, **params)
+        if single_row:
+            as_obj = not (as_tuple or as_dict)
+            decoded = self.codec.decode(row_dict, as_obj=as_obj)
+            if as_tuple:
+                return tuple(decoded.values())
+            else:
+                return decoded
         else:
-            return decoded
+            # row_dict = self.select_query(*select_fields, as_dict=True, single_row=False, **params)
+            as_obj = not (as_tuple or as_dict)
+            decoded_row = [self.codec.decode(row, as_obj=as_obj) for row in row_dict]
+            if as_tuple:
+                return [tuple(row.values()) for row in decoded_row]
+            else:
+                return decoded_row
+
+    def get_all(
+        self,
+        key=None,
+        select_fields: list[str] = [],
+        as_dict=False,
+        as_tuple=False,
+        **kwargs,
+    ) -> DataclassT:
+        """
+        1. establish search
+        2. establish select
+        """
+        return self.get(
+            key=key,
+            select_fields=select_fields,
+            as_dict=as_dict,
+            as_tuple=as_tuple,
+            single_row=False,
+            **kwargs
+            
+        )
+
+
 
     def parse_constraint_dict(self, key=None, **kwargs):
         params = {}
@@ -214,7 +248,7 @@ class DataclassDb(QueryBuilder):
                     )
         return params
 
-    def select_query(self, *args, from_="", as_dict=False, **kwargs):
+    def select_query(self, *args, from_="", as_dict=False, single_row = True, **kwargs):
         """Selects *args columns with **kwargs conditions.
 
         Returns:
@@ -228,7 +262,10 @@ class DataclassDb(QueryBuilder):
         qb.FROM(from_ if from_ else self.table_name)
         if kwargs:
             qb.WHERE(self.where_args(*kwargs.keys()))
-            return qb.execute_one(*kwargs.values(), as_dict=as_dict)
+            if single_row:
+                return qb.execute_one(*kwargs.values(), as_dict=as_dict)
+            else:
+                return qb.execute(*kwargs.values(), as_dict=as_dict)
         else:
             return None
 
