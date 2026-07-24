@@ -31,7 +31,7 @@ class DataclassDb(QueryBuilder):
         data_class: DataclassT,
         connection: str | sqlite3.Connection,
         table_name="",
-        verify_table = True
+        verify_table=True,
     ):
         super().__init__(connection=connection)
         if not is_dataclass(data_class):
@@ -77,12 +77,22 @@ class DataclassDb(QueryBuilder):
 
     def __setitem__(self, key, value) -> DataclassT:
         self.insert(value)
-    
+
     def __getitem__(self, key):
         if isinstance(key, dict):
             return self.get(**key)
         else:
             return self.get(key=key)
+
+    def __len__(self):
+        return self.length()
+
+    def length(self, key=None, **kwargs):
+        params = self.parse_constraint_dict(key=key, **kwargs)
+        if row := self.select_query("COUNT(*)", **params, as_dict=False):
+            return row[0]
+        else:
+            return 0
 
     def insert_query(self, *field_names, returning=True):
         key = (
@@ -189,7 +199,9 @@ class DataclassDb(QueryBuilder):
                 key, select_fields=select_fields, as_dict=as_dict, as_tuple=as_tuple
             )
 
-        row_dict = self.select_query(*select_fields, as_dict=True, single_row=single_row, **params)
+        row_dict = self.select_query(
+            *select_fields, as_dict=True, single_row=single_row, **params
+        )
         if single_row:
             as_obj = not (as_tuple or as_dict)
             decoded = self.codec.decode(row_dict, as_obj=as_obj)
@@ -224,13 +236,10 @@ class DataclassDb(QueryBuilder):
             as_dict=as_dict,
             as_tuple=as_tuple,
             single_row=False,
-            **kwargs
-            
+            **kwargs,
         )
 
-
-
-    def parse_constraint_dict(self, key=None, **kwargs):
+    def parse_constraint_dict(self, key=None, **kwargs) -> dict[str:Any]:
         params = {}
 
         for k, v in kwargs.items():
@@ -256,7 +265,7 @@ class DataclassDb(QueryBuilder):
                     )
         return params
 
-    def select_query(self, *args, from_="", as_dict=False, single_row = True, **kwargs):
+    def select_query(self, *args, from_="", as_dict=False, single_row=True, **kwargs):
         """Selects *args columns with **kwargs conditions.
 
         Returns:
@@ -312,8 +321,12 @@ class DataclassDb(QueryBuilder):
         else:
             return decoded
 
-    def delete(self, key) -> DataclassT:
-        params = self.parse_constraint_dict(key=key)
+    def delete(
+        self,
+        key=None,
+        **kwargs,
+    ):
+        params = self.parse_constraint_dict(key=key, **kwargs)
         if params:
             query = (
                 QueryBuilder()

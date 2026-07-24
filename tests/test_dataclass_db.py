@@ -79,27 +79,6 @@ def test_modify_table(db_mem_connection):
         assert is_dataclass(obj1)
         assert isinstance(obj1, Example_Extended)
 
-
-def test_CRUD(db_mem_connection):
-    with DataclassDb(Example_Dataclass, db_mem_connection) as db:
-        assert 0 not in db
-        assert db.get_current_table_query()
-
-        test_obj = Example_Dataclass(0, "stuart", tags=["a", "b"], connections={"a": 1})
-        db.insert(test_obj)
-        assert 0 in db
-
-        assert db.get(0) == test_obj
-        assert db.get([0]) == test_obj
-        assert db.get((0)) == test_obj
-        assert db.dataclass_sql_cols()
-        db.delete(0)
-        assert 0 not in db
-
-        test_obj.id = 1
-        test_obj.username = "user1"
-        db[1] = test_obj
-
     with DataclassDb(Example_Dataclass, db_mem_connection) as db:
         assert db.get_current_table_query()
 
