@@ -4,25 +4,27 @@
 
 ## [Unreleased]
 
-## [0.1.7] - 2026-07-23
-- Add get_all
+## [0.1.8] - 2026-07-23
 
+* Added "verify_table" flag to DataclassDb to optionally skip checking if the table exists or needs updates.
+
+## [0.1.7] - 2026-07-23
+
+* Add get_all
 
 ## [0.1.6] - 2026-07-20
 
-- Fixed bug where primary generated primary key would be regenerated for repeat unique inserts.
-- Solidified insert returning:
-  - If there is a primary key, return the primary key
-  - Else return the rowid
-  - *Note*: that insert many does not return anything.
-
-
+* Fixed bug where primary generated primary key would be regenerated for repeat unique inserts.
+* Solidified insert returning:
+  * If there is a primary key, return the primary key
+  * Else return the rowid
+  * *Note*: that insert many does not return anything.
 
 ## [0.1.5] - 2026-07-19
 
-- Added support for kwargs in DataclassDb contains and get.
-- Better insertion resolution when both unique and primary key cols are in the same table.
-- Added initial scaffolding for docs.
+* Added support for `**kwargs` in DataclassDb contains and get.
+* Better insertion resolution when both unique and primary key cols are in the same table.
+* Added initial scaffolding for docs.
 
 ## [0.1.4] - 2026-07-15
 
@@ -40,18 +42,15 @@
 
 ## [0.1.2] - 2026-07-14
 
-### Fixed
-
 * Fixed logger bug causing table creation to fail.
 
 ## [0.1.1] - 2026-07-13
 
-### Fixed
-
 * [Issue 1] - Added support for nested origin types
 
-[Unreleased]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.7...HEAD
-[0.1.7]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.5..v0.1.7
+[Unreleased]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.8...HEAD
+[0.1.8]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.7..v0.1.8
+[0.1.7]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.6..v0.1.7
 [0.1.6]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.5..v0.1.6
 [0.1.5]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.4..v0.1.5
 [0.1.4]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.3..v0.1.4
