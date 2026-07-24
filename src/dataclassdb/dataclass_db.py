@@ -77,6 +77,9 @@ class DataclassDb(QueryBuilder):
 
     def __setitem__(self, key, value) -> DataclassT:
         self.insert(value)
+    
+    def __getitem__(self, key):
+        return self.get(key=key)
 
     def insert_query(self, *field_names, returning=True):
         key = (

@@ -1,10 +1,10 @@
-# dataclassdb [BETA]
+# dataclassdb [Early Alpha]
 
 ![](https://img.shields.io/pypi/pyversions/dataclassdb.svg)
-![](https://img.shields.io/pypi/v/dataclassdb)
+[![](https://img.shields.io/pypi/v/dataclassdb)](https://pypi.org/project/dataclassdb/)
 [![Downloads](https://pepy.tech/badge/dataclassdb)](https://pepy.tech/project/dataclassdb)
-![](https://readthedocs.org/projects/dataclassdb/badge/?version=latest)
-![](https://img.shields.io/github/license/stuarts-art/dataclassdb.svg)
+[![](https://readthedocs.org/projects/dataclassdb/badge/?version=latest)](https://dataclassdb.readthedocs.io/en/latest/)
+[![](https://img.shields.io/github/license/stuarts-art/dataclassdb.svg)](./LICENSE)
 
 This module provides a lightweight sqlite3 ORM for dataclasses.
 
@@ -42,6 +42,30 @@ with DataclassDb(Foo, "example.db") as db:
     db.SELECT("bar").FROM(FOO).WHERE("id").eq("?")
     selection = db.execute_one(0) # Replaces ? with 0
 ```
+
+### There are four ways to call get
+
+| Description     | `get`                 | `__getitem__`     |
+| ---             | ---                   | ---               |
+| By key          |  `db.get(0)`          | `db[0]`           |
+| By key(s)       |  `db.get((0))`        | `db[(0)]`         |
+| By dict         |  `db.get({"id":  0})` |  `db[{"id": 0}]`  |
+| By keyword arg  | `db.get(id = 0)`      |                   |
+
+### Basics
+
+- `db.get(...)`
+- `db.get_all(...)`
+- `db.insert(...)`
+- `db.insert_all(...)`
+- `db.execute()`
+- `db.execute_one()`
+- Query builder methods
+  - `db.add`: Appends arbitrary data to string builder
+  - `db.SELECT, db.FROM, db.WHERE... db.<every sqlite statement and function>`:
+    - Appends the statement/function. Example: `db.SELECT("*").FROM(FOO)`
+  - `db.Abs(...), db.Round(...), db.Rtrim(...)`: appends the function with its arguments:
+    - `db.Abs(10)` = `abs(10)`
 
 ## Overview
 

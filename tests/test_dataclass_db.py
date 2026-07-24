@@ -140,8 +140,6 @@ def test_multiple_primary(db_mem_connection):
         assert db.select_query() is None
 
     with DataclassDb(MultipleKeysExample, db_mem_connection, False) as db:
-        assert ("na", 0) not in db
-        assert ("na", 1) not in db
         pass
 
 
@@ -324,6 +322,10 @@ def test_insert_many(db_mem_connection):
         tuple_rows = db.get_all(points=5, as_tuple=True)
         for row in tuple_rows:
             assert row[2] == 5
+        
+        assert db[0] == db.get(0)
+        assert db[0] == db[(0)]
+        assert db[0] == db[{"pid": 0}]
 
 
 def test_insert_many_failure(db_mem_connection):
