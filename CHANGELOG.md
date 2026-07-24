@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-07-24
+
+- Add better support for queries with no conditions.
+- Added condition based deletes
+- Added `len(db)` and `db.length()` as well as `db.length(conditions)`
+
 ## [0.1.8] - 2026-07-23
 
 - Added "verify_table" flag to DataclassDb to optionally skip checking if the table exists or needs updates.
@@ -50,7 +56,8 @@
 
 - [Issue 1] - Added support for nested origin types
 
-[Unreleased]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.8...HEAD
+[Unreleased]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.9...HEAD
+[0.1.9]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.8..v0.1.9
 [0.1.8]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.7..v0.1.8
 [0.1.7]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.6..v0.1.7
 [0.1.6]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.5..v0.1.6
