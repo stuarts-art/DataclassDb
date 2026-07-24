@@ -31,6 +31,7 @@ class DataclassDb(QueryBuilder):
         data_class: DataclassT,
         connection: str | sqlite3.Connection,
         table_name="",
+        verify_table = True
     ):
         super().__init__(connection=connection)
         if not is_dataclass(data_class):
@@ -52,7 +53,8 @@ class DataclassDb(QueryBuilder):
                 self.primary_keys.append(name)
             if _field.unique:
                 self.unique.append(name)
-        self.create_or_update_table()
+        if verify_table:
+            self.create_or_update_table()
 
     def __contains__(self, key: int | str | tuple | dict) -> bool:
         try:

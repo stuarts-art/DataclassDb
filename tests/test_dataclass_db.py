@@ -139,7 +139,9 @@ def test_multiple_primary(db_mem_connection):
         assert db.get(("na", 0)) == db.get(region="na", eid=0)
         assert db.select_query() is None
 
-    with DataclassDb(MultipleKeysExample, db_mem_connection) as db:
+    with DataclassDb(MultipleKeysExample, db_mem_connection, False) as db:
+        assert ("na", 0) not in db
+        assert ("na", 1) not in db
         pass
 
 
