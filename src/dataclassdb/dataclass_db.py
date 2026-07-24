@@ -79,7 +79,10 @@ class DataclassDb(QueryBuilder):
         self.insert(value)
     
     def __getitem__(self, key):
-        return self.get(key=key)
+        if isinstance(key, dict):
+            return self.get(**key)
+        else:
+            return self.get(key=key)
 
     def insert_query(self, *field_names, returning=True):
         key = (
@@ -272,7 +275,7 @@ class DataclassDb(QueryBuilder):
             else:
                 return qb.execute(*kwargs.values(), as_dict=as_dict)
         else:
-            return None
+            return qb.execute(as_dict=as_dict, single_row=single_row)
 
     def peek(
         self, rowid=None, select_fields: list[str] = None, as_dict=False, as_tuple=False

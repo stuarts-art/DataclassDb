@@ -137,7 +137,11 @@ def test_multiple_primary(db_mem_connection):
         assert ("na", 0) not in db
         assert ("na", 1) in db
         assert db.get(("na", 0)) == db.get(region="na", eid=0)
-        assert db.select_query() is None
+        assert db.get(("na", 1)) == db.get(region="na", eid=1)
+        assert db.select_query() is not None
+        assert db.select_query("MAX(eid)", as_dict=False)[0] == 1
+        assert db.get(select_fields=["MAX(eid)"], as_tuple=True)[0] == 1
+        assert db[{"select_fields": ["MAX(eid)"], "as_tuple": True}][0] == 1
 
     with DataclassDb(MultipleKeysExample, db_mem_connection, False) as db:
         pass
