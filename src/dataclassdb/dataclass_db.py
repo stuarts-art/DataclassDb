@@ -1,7 +1,7 @@
 import logging
 import sqlite3
 from dataclasses import is_dataclass
-from typing import Any, Iterable, TypeVar
+from typing import Any, Generic, Iterable, TypeVar
 
 from dataclassdb.builders.query_builder import QueryBuilder
 from dataclassdb.constants import SQL
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 DataclassT = TypeVar("DataclassT", bound=IsDataclass)
 
 
-class DataclassDb(QueryBuilder):
+class DataclassDb(Generic[DataclassT], QueryBuilder):
     """DataclassDb provides a context managed interface with sqlite 3 using a dataclass.
 
     Args:

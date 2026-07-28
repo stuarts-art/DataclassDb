@@ -10,7 +10,7 @@ __all__ = [
 import functools
 import logging
 from dataclasses import asdict, fields, is_dataclass
-from typing import Any, Literal, TypeVar, get_type_hints, overload
+from typing import Any, Generic, Literal, TypeVar, get_type_hints, overload
 
 from dacite import from_dict
 
@@ -58,18 +58,18 @@ def decode_dict(
     return output
 
 
-T = TypeVar("T", bound=IsDataclass)
-class DataclassTableCodec:
+DataclassT = TypeVar("T", bound=IsDataclass)
+class DataclassTableCodec(Generic[DataclassT]):
     """This class takes a dataclass and provides encoder and decoder (codec) from and to sqlite."""
 
     def __contains__(self, item):
         return item in self.class_fields
 
-    def __init__(self, data_class: T) -> None:
+    def __init__(self, data_class: DataclassT) -> None:
         if not data_class or not is_dataclass(data_class):
             raise ValueError(f"Provided class {data_class} is not a dataclass")
 
-        self.data_class: T = data_class
+        self.data_class: DataclassT = data_class
         self.primary_keys = []
         self.class_fields: dict[str, DataclassSqliteField] = {}
 
@@ -84,11 +84,11 @@ class DataclassTableCodec:
         self.key_match_str = " AND ".join([f"{key} = ?" for key in self.primary_keys])
 
     @overload
-    def encode(self, obj: T, *cols, as_tuple: Literal[True]) -> tuple: ...
+    def encode(self, obj: DataclassT, *cols, as_tuple: Literal[True]) -> tuple: ...
     @overload
-    def encode(self, obj: T, *cols, as_tuple: Literal[False]) -> dict: ...
+    def encode(self, obj: DataclassT, *cols, as_tuple: Literal[False]) -> dict: ...
     def encode(
-        self, obj: T, *cols, as_tuple: bool = True, ignore_none=True
+        self, obj: DataclassT, *cols, as_tuple: bool = True, ignore_none=True
     ) -> tuple | dict:
         if obj is None:
             return None
@@ -109,10 +109,10 @@ class DataclassTableCodec:
         return tuple(output.values()) if as_tuple else output
 
     @overload
-    def decode(self, row_dict, as_obj: Literal[True]) -> T: ...
+    def decode(self, row_dict, as_obj: Literal[True]) -> DataclassT: ...
     @overload
     def decode(self, row_dict, as_obj: Literal[False]) -> dict: ...
-    def decode(self, row_dict, as_obj: bool = False) -> T | dict:
+    def decode(self, row_dict, as_obj: bool = False) -> DataclassT | dict:
         if row_dict is None:
             return None
         output = {}

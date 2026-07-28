@@ -45,6 +45,8 @@ def create_field_codec(field_class: T, sql_type: str) -> Codec:
     elif issubclass(field_class, datetime):
         if sql_type == "INTEGER":
             return datetime_int_codec
+        elif sql_type == "REAL":
+            return datetime_real_codec
         else:
             return datetime_text_codec
 
@@ -212,6 +214,19 @@ class DatetimeIntCodec(Codec):
             return None
         return datetime.fromtimestamp(timestamp=data, tz=timezone.utc)
 
+class DatetimeRealCodec(Codec):
+    """Converts between python datetime(utc) to sqlite3 INTEGER"""
+
+    def encode(self, data: datetime) -> float:
+        if data is None:
+            return None
+        return data.timestamp()
+
+    def decode(self, data: float) -> datetime:
+        if data is None:
+            return None
+        return datetime.fromtimestamp(timestamp=data, tz=timezone.utc)
+
 
 class DatetimeTextCodec(Codec):
     """Converts between python datetime to sqlite3 TEXT(ISO 8601)"""
@@ -233,4 +248,5 @@ identity_codec = IdentityCodec()
 json_codec = JsonCodec()
 pickle_codec = PickleCodec()
 datetime_int_codec = DatetimeIntCodec()
+datetime_real_codec = DatetimeRealCodec()
 datetime_text_codec = DatetimeTextCodec()

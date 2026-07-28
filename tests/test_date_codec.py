@@ -4,6 +4,7 @@ from typing import Annotated
 
 from dataclassdb.dataclass_db import DataclassDb
 from dataclassdb.dataclass_field_codec import (
+    DatetimeRealCodec,
     DatetimeIntCodec,
     DatetimeTextCodec,
 )
@@ -110,3 +111,30 @@ class TestDateIntegerCodec:
             assert db.codec.class_fields["test_00"].decode(None) is None
             assert get_obj.updated != get_changed_obj.updated
             assert get_obj.created == get_changed_obj.created
+
+class TestDatetimeRealCodec:
+    @dataclass
+    class ClassOne:
+        id: Annotated[int, "PRIMARY KEY"]
+        test_00: Annotated[datetime, "REAL"]
+
+    def test_class_init(self, db_mem_connection):
+        dt = datetime.now(tz=timezone.utc)
+        obj_0 = self.ClassOne(0, dt)
+        assert obj_0
+        with DataclassDb(self.ClassOne, db_mem_connection) as db:
+            for t in ["test_00"]:
+                assert t in db.codec.class_fields
+                class_field = db.codec.class_fields[t]
+                assert class_field.sql_type == "REAL"
+                assert isinstance(class_field.codec, DatetimeRealCodec)
+            inserted = db.insert(obj_0)
+            assert inserted is not None
+            get_obj = db.get(0)
+            assert get_obj
+            assert get_obj.id is not None
+            assert get_obj.test_00 == obj_0.test_00
+
+        
+            assert class_field.codec.encode(None) is None
+            assert class_field.codec.decode(None) is None

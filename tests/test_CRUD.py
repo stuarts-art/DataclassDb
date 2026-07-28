@@ -41,7 +41,14 @@ def test_delete_multiple(db_mem_connection):
         for i in range(10):
             assert i in db
         assert len(db) == 10
+        assert db.length() == 10
         
         db.delete(score = 1)
         assert len(db) == 5
+        assert db.length() == 5
 
+
+def test_empty_len(db_mem_connection):
+    with DataclassDb(Example_Dataclass, db_mem_connection) as db:
+        db.select_query = lambda *args, **kwargs: None
+        assert len(db) == 0
