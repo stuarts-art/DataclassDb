@@ -14,11 +14,11 @@ def test_connector(db_mem_connection):
 
 def test_mem_connection():
     with DbEngine(":memory:") as db:
-        db.show
+        db.show()
 
     with pytest.raises(ValueError):
         with DbEngine() as db:
-            db.show
+            db.show()
 
 
 def test_execute(db_mem_connection):

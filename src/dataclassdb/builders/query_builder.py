@@ -63,12 +63,13 @@ class QueryBuilder(DbEngine, StatementBuilder, FunctionBuilder):
             self.query.append(",")
         return self
 
-    @property
-    def end(self):
+    def end(self, br=True):
         if self.query:
             self.query[-1] = f"{self.query[-1]};"
         else:
             self.query.append(";")
+        if br:
+            self.br()
         return self
 
     def par(self, *args, commas=True, quotes=False) -> Self:
@@ -125,7 +126,7 @@ class QueryBuilder(DbEngine, StatementBuilder, FunctionBuilder):
         cols = [col.replace("\n", "").strip() for col in cols]
         return cols
 
-    def select(self, *args):
+    def select(self, *args) -> Self:
         """This version of select handles the case where dot notation
         is used in a select.
         `SELECT user.id -> SELECT user.id AS [user.id]`
@@ -140,7 +141,7 @@ class QueryBuilder(DbEngine, StatementBuilder, FunctionBuilder):
                 params.append(arg)
         return self.SELECT(*params)
 
-    def from_(self, table: str | IsDataclass, as_=""):
+    def from_(self, table: str | IsDataclass, as_="") -> Self:
         self.FROM(table)
         if as_:
             self.AS(as_)
@@ -148,7 +149,7 @@ class QueryBuilder(DbEngine, StatementBuilder, FunctionBuilder):
 
     def join(
         self, table: str | IsDataclass, as_="", on="", using_cols=[], join_type=""
-    ):
+    ) -> Self:
         if on and using_cols:
             raise SyntaxError("Cannot have both 'ON' and 'USING' statements in a join.")
         if join_type:

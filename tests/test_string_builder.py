@@ -56,7 +56,7 @@ def test_string_builder_call():
     builder()
     assert str(builder) == ""
 
-    assert str(builder("a").br("c", "d")) == "a \nc, d"
+    assert str(builder("a").br()("c", "d")) == "a\nc, d"
     builder.clear
 
     @dataclass
@@ -70,9 +70,6 @@ def test_string_builder_call():
 
     builder.clear
 
-    builder = StringBuilder().set_sep("")
-    assert str(builder("a", "b", "c", commas=False)) == "abc"
-
     with pytest.raises(ValueError):
         builder.add_func()
 
@@ -84,5 +81,11 @@ def test_string_builder_call():
 
 def test_show(capsys):
     capsys.readouterr()
-    StringBuilder()("Test words").show
+    StringBuilder()("Test words").show()
     assert capsys.readouterr().out == "Test words\n"
+
+
+def test_br():
+    sb = StringBuilder()
+    sb.br()
+    assert str(sb) == "\n"

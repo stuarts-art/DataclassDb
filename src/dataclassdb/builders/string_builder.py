@@ -6,13 +6,16 @@ import dataclassdb.builders.list_utils as lu
 
 class StringBuilder:
     def __init__(self, *args, **kwargs):
-        self.sep = " "
         self.query = []
-        self.br_count = 0
 
-    def __repr__(self):
-        query_str = self.sep.join(map(str, self.query))
-        return query_str
+    def __repr__(self) -> str:
+        br_query: list[str] = []
+        for cur in map(str, self.query):
+            if not br_query or not br_query[-1].endswith("\n"):
+                br_query.append(cur)
+            else:
+                br_query[-1] = f"{br_query[-1]}{cur}"
+        return " ".join(br_query)
 
     def __eq__(self, value: object) -> bool:
         return str(self) == value
@@ -27,21 +30,20 @@ class StringBuilder:
                 *args, commas=commas, par=par, quotes=quotes, newline=newline
             )
 
-    @property
     def show(self) -> Self:
         print(self)
         return self
 
-    @property
     def br(self) -> Self:
-        self.br_count += 1
+        if self.query:
+            self.query[-1] = f"{self.query[-1]}\n"
+        else:
+            self.query.append("\n")
         return self
 
     @property
     def clear(self) -> Self:
         self.query = []
-        self.br_count = 0
-        return self
 
     def as_string(self) -> str:
         """Returns the built string and clears the query
@@ -53,9 +55,6 @@ class StringBuilder:
         finally:
             self.clear
 
-    def set_sep(self, sep: str) -> Self:
-        self.sep = sep
-        return self
 
     def add(
         self, *args, commas=True, par=False, quotes=False, newline=False, **kwargs
@@ -70,13 +69,8 @@ class StringBuilder:
             params = lu.add_commas(params)
         if par:
             params = lu.add_parenthesis(params)
-        if newline:
-            if params:
-                params[0] = f"\n{params[0]}"
-        if self.br_count:
-            prefix = "\n" * int(self.br_count)
-            params[0] = f"{prefix}{params[0]}"
-            self.br_count = 0
+        if newline and params:
+            params[0] = f"\n{params[0]}"
 
         for arg in lu.flatten(params):
             if arg is None or arg == "":

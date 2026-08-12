@@ -30,8 +30,8 @@ def test_query_builder():
     assert builder == "x, 2"
     builder.clear
 
-    builder("x").end("2")
-    assert builder == "x; 2"
+    builder("x").end()("2")
+    assert builder == "x;\n2"
     builder.clear
 
     builder("x").par("2")
@@ -126,7 +126,7 @@ def test_edgecases():
     assert qb.comma("x") == ", x"
     qb.clear
 
-    assert qb.end("x") == "; x"
+    assert qb.end()("x") == ";\nx"
     qb.clear
 
     assert qb.from_("Table", as_="t") == "FROM Table AS t"
@@ -138,3 +138,12 @@ def test_edgecases():
     assert qb.join("Table", using_cols="id") == "JOIN Table USING (id)"
     qb.clear
     assert qb.join("Table", using_cols=["id", "name"]) == "JOIN Table USING (id, name)"
+    qb.clear
+    assert qb.end(False) == ";"
+    qb.clear
+    assert qb.end() == ";\n"
+    qb.clear
+    assert qb.end().SELECT == ";\nSELECT"
+    qb.clear
+    assert qb.end(False).SELECT == "; SELECT"
+

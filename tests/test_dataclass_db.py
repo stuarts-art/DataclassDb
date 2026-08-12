@@ -226,7 +226,7 @@ def test_decode_dict(db_mem_connection):
             .from_(StudentCourseLink)
             .join(Student, "s", "student_id = s.id")
             .join(Course, "c", "course_id = c.id")
-            .show.execute_one(as_dict=True)
+            .show().execute_one(as_dict=True)
         )
 
     decoded = decode_dict(

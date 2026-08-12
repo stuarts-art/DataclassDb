@@ -97,7 +97,7 @@ class TestInt:
     def test_set_fields(self, db_mem_connection):
         with pytest.raises(TypeError):
             with DataclassDb(self.Failure_Dataclass, db_mem_connection) as db:
-                db.show
+                db.show()
 
     @dataclass
     class Pass_Set_Dataclass:

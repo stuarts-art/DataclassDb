@@ -92,7 +92,7 @@ class DbEngine(StringBuilder):
             if not query_str:
                 raise ValueError("Query is empty")
 
-            if not query_str.endswith(";"):
+            if not query_str.endswith((";", ";\n",)):
                 query_str = f"{query_str};"
 
             cur = self.connection.cursor()

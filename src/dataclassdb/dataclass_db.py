@@ -110,7 +110,7 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
             )
 
             if self.unique and len(uniques_in_fields) == len(self.unique):
-                query.br.ON.CONFLICT(*self.unique, par=True).br
+                query.br().ON.CONFLICT(*self.unique, par=True).br()
                 cols = [col for col in field_names if col not in self.unique]
                 if len(cols) > 0:
                     query.DO.UPDATE.SET(*[f"{col} = excluded.{col}" for col in cols])
@@ -120,7 +120,7 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
                     query.DO.NOTHING
 
             if self.primary_keys and len(primaries_in_fields) == len(self.primary_keys):
-                query.br.ON.CONFLICT(*self.primary_keys, par=True).br
+                query.br().ON.CONFLICT(*self.primary_keys, par=True).br()
                 cols = [col for col in field_names if col not in self.primary_keys]
                 if len(cols) > 0:
                     query.DO.UPDATE.SET(*[f"{col} = excluded.{col}" for col in cols])
@@ -132,7 +132,7 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
                     query.DO.NOTHING
             if returning:
                 ret_fields = self.primary_keys if self.primary_keys else ["rowid"]
-                query.br.RETURNING(*ret_fields)
+                query.br().RETURNING(*ret_fields)
 
             self.query_map[key] = str(query)
         return self.query_map[key]
@@ -149,7 +149,7 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
             .eq.quote("table")
             .AND("name")
             .eq.quote(self.table_name)
-            .end.execute_one(as_dict=False)
+            .end().execute_one(as_dict=False)
         )
         return row[0] if row else ""
 
@@ -368,15 +368,15 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
             if overlapping_fields:
                 query = (
                     QueryBuilder()
-                    .BEGIN.IMMEDIATE.TRANSACTION.end.br(
+                    .BEGIN.IMMEDIATE.TRANSACTION.end().br()(
                         self.sql_create_table(temp_table)
                     )
-                    .br.INSERT.INTO(temp_table)
+                    .br().INSERT.INTO(temp_table)
                     .par(*overlapping_fields)
-                    .br.SELECT(*overlapping_fields)
+                    .br().SELECT(*overlapping_fields)
                     .FROM(self.table_name)
-                    .end.br.DROP.TABLE.IF.EXISTS(self.table_name)
-                    .end.br.ALTER.TABLE(temp_table)
+                    .end().br().DROP.TABLE.IF.EXISTS(self.table_name)
+                    .end().br().ALTER.TABLE(temp_table)
                     .RENAME.TO(self.table_name)
                 )
                 self.execute_script(sql_script=str(query))
@@ -387,11 +387,11 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
                 )
                 query = (
                     QueryBuilder()
-                    .BEGIN.IMMEDIATE.TRANSACTION.end.br.DROP.TABLE.IF.EXISTS(
+                    .BEGIN.IMMEDIATE.TRANSACTION.end().br().DROP.TABLE.IF.EXISTS(
                         self.table_name
                     )
-                    .end.br(self.sql_create_table())
-                    .br
+                    .end().br()(self.sql_create_table())
+                    .br()
                 )
                 self.execute_script(sql_script=str(query))
             logger.info(
@@ -409,7 +409,7 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
             QueryBuilder()
             .CREATE.TABLE.IF.NOT.EXISTS(table_name)
             .par(f"\n{cols_str}\n")
-            .end
+            .end()
         )
 
     def dataclass_sql_cols(self):
