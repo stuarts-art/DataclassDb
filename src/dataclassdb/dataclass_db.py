@@ -1,7 +1,8 @@
 import logging
 import sqlite3
+from collections.abc import Iterable
 from dataclasses import is_dataclass
-from typing import Any, Generic, Iterable, TypeVar
+from typing import Any, ClassVar, Generic, TypeVar
 
 from dataclassdb.builders.query_builder import QueryBuilder
 from dataclassdb.constants import SQL
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 DataclassT = TypeVar("DataclassT", bound=IsDataclass)
 
 
-class DataclassDb(Generic[DataclassT], QueryBuilder):
+class DataclassDb(QueryBuilder, Generic[DataclassT]):
     """DataclassDb provides a context managed interface with sqlite 3 using a dataclass.
 
     Args:
@@ -23,8 +24,8 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
         _type_: _description_
     """
 
-    primary_key_map: dict[Any, list[str]] = {}
-    unique_map: dict[Any, list[str]] = {}
+    primary_key_map: ClassVar[dict[Any, list[str]]] = {}
+    unique_map: ClassVar[dict[Any, list[str]]] = {}
 
     def __init__(
         self,
@@ -32,7 +33,7 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
         connection: str | sqlite3.Connection,
         table_name="",
         verify_table=True,
-    ):
+    ) -> None:
         super().__init__(connection=connection)
         if not is_dataclass(data_class):
             raise TypeError(f"Class {data_class.__name__} is not a dataclass")
@@ -75,26 +76,26 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
         except Exception:
             return False
 
-    def __setitem__(self, key, value) -> DataclassT:
+    def __setitem__(self, key, value) -> None:
         self.insert(value)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key) -> DataclassT | dict | tuple:
         if isinstance(key, dict):
             return self.get(**key)
         else:
             return self.get(key=key)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.length()
 
-    def length(self, key=None, **kwargs):
+    def length(self, key=None, **kwargs) -> int:
         params = self.parse_constraint_dict(key=key, **kwargs)
         if row := self.select_query("COUNT(*)", **params, as_dict=False):
             return row[0]
         else:
             return 0
 
-    def insert_query(self, *field_names, returning=True):
+    def insert_query(self, *field_names, returning=True) -> str:
         key = (
             "insert_query",
             field_names,
@@ -117,7 +118,7 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
                 elif returning:
                     query.DO.UPDATE.SET(f"{self.unique[0]} = {self.unique[0]}")
                 else:
-                    query.DO.NOTHING
+                    query.DO.NOTHING  # noqa: B018
 
             if self.primary_keys and len(primaries_in_fields) == len(self.primary_keys):
                 query.br().ON.CONFLICT(*self.primary_keys, par=True).br()
@@ -129,7 +130,7 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
                         f"{self.primary_keys[0]} = {self.primary_keys[0]}"
                     )
                 else:
-                    query.DO.NOTHING
+                    query.DO.NOTHING  # noqa: B018
             if returning:
                 ret_fields = self.primary_keys if self.primary_keys else ["rowid"]
                 query.br().RETURNING(*ret_fields)
@@ -149,7 +150,8 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
             .eq.quote("table")
             .AND("name")
             .eq.quote(self.table_name)
-            .end().execute_one(as_dict=False)
+            .end()
+            .execute_one(as_dict=False)
         )
         return row[0] if row else ""
 
@@ -162,28 +164,29 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
         if row:
             return row[0] if len(self.primary_keys) == 1 else row
 
-    def insert_many(self, items: list[DataclassT]):
+    def insert_many(self, items: list[DataclassT]) -> None:
         encoded = [
             self.codec.encode(item, as_tuple=True, ignore_none=False) for item in items
         ]
         field_names = self.codec.class_fields.keys()
-        return self.execute_many(
+        self.execute_many(
             *encoded, sql_str=self.insert_query(*field_names, returning=False)
         )
 
     def get(
         self,
         key=None,
-        select_fields: list[str] = [],
+        select_fields: list[str] | None = None,
         as_dict=False,
         as_tuple=False,
         single_row=True,
         **kwargs,
-    ) -> DataclassT:
+    ) -> DataclassT | tuple | dict:
         """
         1. establish search
         2. establish select
         """
+        select_fields = select_fields if select_fields else []
 
         if as_dict and as_tuple:
             raise ValueError("as_dict and as _tuple cannot both be true")
@@ -221,7 +224,7 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
     def get_all(
         self,
         key=None,
-        select_fields: list[str] = [],
+        select_fields: list[str] | None = None,
         as_dict=False,
         as_tuple=False,
         **kwargs,
@@ -230,6 +233,7 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
         1. establish search
         2. establish select
         """
+        select_fields = select_fields if select_fields else []
         return self.get(
             key=key,
             select_fields=select_fields,
@@ -265,7 +269,9 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
                     )
         return params
 
-    def select_query(self, *args, from_="", as_dict=False, single_row=True, **kwargs):
+    def select_query(
+        self, *args, from_="", as_dict=False, single_row=True, **kwargs
+    ) -> dict | tuple | list:
         """Selects *args columns with **kwargs conditions.
 
         Returns:
@@ -287,8 +293,10 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
             return qb.execute(as_dict=as_dict, single_row=single_row)
 
     def peek(
-        self, rowid=None, select_fields: list[str] = None, as_dict=False, as_tuple=False
-    ):
+        self, rowid=None, select_fields: list[str] | None = None, as_dict=False, as_tuple=False
+    ) -> dict | tuple:
+        select_fields = select_fields if select_fields else []
+    
         if as_dict and as_tuple:
             raise ValueError("as_dict and as _tuple cannot both be true")
         if select_fields and not as_dict and not as_tuple:
@@ -302,7 +310,7 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
         query = QueryBuilder().SELECT(field_str).FROM(self.table_name)
         if rowid is not None:
             query.WHERE("rowid").eq("?")
-        query.ORDER.BY("rowid").DESC
+        query.ORDER.BY("rowid").DESC  # noqa: B018
         if rowid:
             row_dict: dict = self.execute_one(
                 rowid,
@@ -325,7 +333,7 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
         self,
         key=None,
         **kwargs,
-    ):
+    ) -> None:
         params = self.parse_constraint_dict(key=key, **kwargs)
         if params:
             query = (
@@ -338,7 +346,7 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
             query = QueryBuilder().DELETE.FROM(self.table_name).WHERE("rowid").eq("?")
             self.execute_one(key, sql_str=str(query))
 
-    def create_or_update_table(self):
+    def create_or_update_table(self) -> None:
         logger.info("Creating or updating table %s", self.table_name)
         if not table_exists(self.connection, self.table_name):
             logger.info("Table %s does not exist. Creating table.", self.table_name)
@@ -356,7 +364,7 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
             curr_fields = {f.name: f for f in fields_list}
             dc_fields = self.codec.class_fields
             overlapping_fields = []
-            for dc_field, dc_item in dc_fields.items():
+            for dc_field in dc_fields:
                 if curr_fields.get(dc_field, None):
                     overlapping_fields.append(dc_field)
             temp_table = f"temp_{self.table_name}"
@@ -368,15 +376,20 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
             if overlapping_fields:
                 query = (
                     QueryBuilder()
-                    .BEGIN.IMMEDIATE.TRANSACTION.end().br()(
-                        self.sql_create_table(temp_table)
-                    )
-                    .br().INSERT.INTO(temp_table)
+                    .BEGIN.IMMEDIATE.TRANSACTION.end()
+                    .br()(self.sql_create_table(temp_table))
+                    .br()
+                    .INSERT.INTO(temp_table)
                     .par(*overlapping_fields)
-                    .br().SELECT(*overlapping_fields)
+                    .br()
+                    .SELECT(*overlapping_fields)
                     .FROM(self.table_name)
-                    .end().br().DROP.TABLE.IF.EXISTS(self.table_name)
-                    .end().br().ALTER.TABLE(temp_table)
+                    .end()
+                    .br()
+                    .DROP.TABLE.IF.EXISTS(self.table_name)
+                    .end()
+                    .br()
+                    .ALTER.TABLE(temp_table)
                     .RENAME.TO(self.table_name)
                 )
                 self.execute_script(sql_script=str(query))
@@ -387,10 +400,11 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
                 )
                 query = (
                     QueryBuilder()
-                    .BEGIN.IMMEDIATE.TRANSACTION.end().br().DROP.TABLE.IF.EXISTS(
-                        self.table_name
-                    )
-                    .end().br()(self.sql_create_table())
+                    .BEGIN.IMMEDIATE.TRANSACTION.end()
+                    .br()
+                    .DROP.TABLE.IF.EXISTS(self.table_name)
+                    .end()
+                    .br()(self.sql_create_table())
                     .br()
                 )
                 self.execute_script(sql_script=str(query))
@@ -412,11 +426,10 @@ class DataclassDb(Generic[DataclassT], QueryBuilder):
             .end()
         )
 
-    def dataclass_sql_cols(self):
+    def dataclass_sql_cols(self) -> list[str]:
         """Returns a list of SQL columns used in CREATE TABLE"""
-        #
         params = []
-        for name, f in self.codec.class_fields.items():
+        for f in self.codec.class_fields.values():
             params.append(
                 f.sql_col_def(len(self.primary_keys) > 1, len(self.unique) > 1)
             )

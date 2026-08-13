@@ -19,7 +19,7 @@ class DataclassSqliteField:
     It also provides an encoder/decoder to and from sqlite.
     """
 
-    _type_map = {
+    _type_map = {  # noqa: RUF012
         int: "INTEGER",
         StrEnum: "TEXT",
         Enum: "INTEGER",
@@ -172,7 +172,7 @@ class DataclassSqliteField:
             self.sql_create_type if self.sql_create_type else self.sql_type,
         ]
         for key, val in self.constraints.items():
-            if key == "PRIMARY" and skip_primary:
+            if key == "PRIMARY" and skip_primary:  # noqa: SIM114
                 pass
             elif key == "UNIQUE" and skip_unique:
                 pass

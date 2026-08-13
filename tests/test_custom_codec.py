@@ -4,7 +4,6 @@ from typing import Annotated
 from dataclassdb.dataclass_db import DataclassDb
 from dataclassdb.dataclass_types import CustomCodec
 
-
 codec = CustomCodec(encode=lambda x: x + 1000, decode=lambda x: x - 1000)
 
 

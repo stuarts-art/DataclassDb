@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-08-13
+
+Signature bug fixes.
+
+
 ## [0.2.0] - 2026-08-12
 
 Treating the "Minor version" (Major.Minor.Patch) as the major version while still in beta.
@@ -78,7 +83,8 @@ The following include breaking changes, thus `0.2.0`:
 
 - [Issue 1] - Added support for nested origin types
 
-[Unreleased]: https://github.com/stuarts-art/DataclassDb/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/stuarts-art/DataclassDb/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/stuarts-art/DataclassDb/compare/v0.2.0..v0.2.1
 [0.2.0]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.11..v0.2.0
 [0.1.11]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.10..v0.1.11
 [0.1.10]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.9..v0.1.10

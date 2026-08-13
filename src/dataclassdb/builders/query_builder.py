@@ -63,7 +63,7 @@ class QueryBuilder(DbEngine, StatementBuilder, FunctionBuilder):
             self.query.append(",")
         return self
 
-    def end(self, br=True):
+    def end(self, br=True) -> Self:
         if self.query:
             self.query[-1] = f"{self.query[-1]};"
         else:
@@ -163,7 +163,7 @@ class QueryBuilder(DbEngine, StatementBuilder, FunctionBuilder):
         return self
 
     def join(
-        self, table: str | IsDataclass, as_="", on="", using_cols=[], join_type=""
+        self, table: str | IsDataclass, as_="", on="", using_cols: None | list= None, join_type=""
     ) -> Self:
         if on and using_cols:
             raise SyntaxError("Cannot have both 'ON' and 'USING' statements in a join.")
