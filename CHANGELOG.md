@@ -4,6 +4,20 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-12
+
+Treating the "Minor version" (Major.Minor.Patch) as the major version while still in beta.
+
+The following include breaking changes, thus `0.2.0`:
+
+- Builder methods: `br`, `end`, and `show` are no longer `@properties`.
+  - Fixed a bug where the signature for these methods was not Self.
+- `placeholders` no longer prepends a count (i.e. `1?, 2?, ...)
+- `placeholders` now saves the provided params.
+  - At `execute`, the params are prepended to any new args.
+  - After `execute`, params is reset to an empty list.
+  - `params` can be accessed as `qb.params` if only `QueryBuilder` to build and not operate on DB.
+
 ## [0.1.11] - 2026-07-27
 
 - Add datetime real codec.
@@ -64,7 +78,8 @@
 
 - [Issue 1] - Added support for nested origin types
 
-[Unreleased]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.11...HEAD
+[Unreleased]: https://github.com/stuarts-art/DataclassDb/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.11..v0.2.0
 [0.1.11]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.10..v0.1.11
 [0.1.10]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.9..v0.1.10
 [0.1.9]: https://github.com/stuarts-art/DataclassDb/compare/v0.1.8..v0.1.9
