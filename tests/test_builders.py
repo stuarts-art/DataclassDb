@@ -10,7 +10,7 @@ def test_function_builder():
             func_name = str(func).capitalize()
             method = getattr(builder, func_name)
             assert str(method()) == f"{func_name.lower()}()"
-            builder.clear
+            builder.clear()
 
 
 def test_statement_builder():
@@ -20,4 +20,4 @@ def test_statement_builder():
             method = getattr(builder, func.name)
             assert method
             assert str(builder) == str(func)
-            builder.clear
+            builder.clear()

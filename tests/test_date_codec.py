@@ -37,16 +37,13 @@ class TestDateTextCodec:
                 assert isinstance(class_field.codec, DatetimeTextCodec)
             inserted = db.insert(obj_0)
             assert inserted is not None
-            print(f"inserted {inserted}")
             obj = db.get(0)
-            print(f"obj {obj}")
             assert obj.id is not None
             assert obj.test_00 is not None
             assert obj.test_01 is not None
             assert obj.test_02 is not None
             assert obj.updated is not None
             assert obj.created is not None
-            print(obj)
 
             dt = datetime.now(tz=timezone.utc)
             obj_0_changed = self.ClassOne(0, dt, dt, dt)
@@ -84,7 +81,6 @@ class TestDateIntegerCodec:
                 assert isinstance(class_field.codec, DatetimeIntCodec)
             inserted = db.insert(obj_0)
             assert inserted is not None
-            print(f"inserted {inserted}")
             get_obj = db.get(0)
             assert get_obj
             assert get_obj.id is not None

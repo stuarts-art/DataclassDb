@@ -7,6 +7,7 @@ import dataclassdb.builders.list_utils as lu
 class StringBuilder:
     def __init__(self, *args, **kwargs):
         self.query = []
+        self.params = []
 
     def __repr__(self) -> str:
         br_query: list[str] = []
@@ -41,9 +42,9 @@ class StringBuilder:
             self.query.append("\n")
         return self
 
-    @property
     def clear(self) -> Self:
         self.query = []
+        self.params = []
 
     def as_string(self) -> str:
         """Returns the built string and clears the query
@@ -53,8 +54,7 @@ class StringBuilder:
         try:
             return str(self)
         finally:
-            self.clear
-
+            self.clear()
 
     def add(
         self, *args, commas=True, par=False, quotes=False, newline=False, **kwargs

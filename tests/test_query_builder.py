@@ -7,52 +7,71 @@ from dataclassdb.builders.query_builder import (
 )
 
 
+def test_placeholders(db_mem_connection):
+    with QueryBuilder(db_mem_connection) as qb:
+        qb.CREATE.TABLE("users").par("id TEXT", "name TEXT").end()
+        qb.execute()
+
+        assert not qb.SELECT("id").FROM("users").execute()
+        qb.INSERT.INTO("users").par("id", "name").VALUES.placeholders("id0", "name0")
+        qb.execute()
+        qb.SELECT("*").FROM("users").WHERE("id").eq("id0", quotes=True).show()
+        assert qb.execute() == [("id0", "name0")]
+
+        qb.SELECT("id").FROM("users").WHERE("id").eq.placeholders("id1")
+        assert not qb.execute()
+        qb.INSERT.INTO("users").par("id", "name").VALUES.placeholders(count=2)
+        qb.execute("id1", "name1")
+        qb.SELECT("*").FROM("users").WHERE("id").eq.placeholders(count=1)
+        assert qb.execute("id1") == [("id1", "name1")]
+
+
 def test_query_builder():
     builder = QueryBuilder()
 
     builder("x").eq("2")
     assert builder == "x = 2"
-    builder.clear
+    builder.clear()
 
     builder("x").neq("2")
     assert builder == "x <> 2"
-    builder.clear
+    builder.clear()
 
     builder("x").lpar("2")
     assert builder == "x ( 2"
-    builder.clear
+    builder.clear()
 
     builder("x").rpar("2")
     assert builder == "x ) 2"
-    builder.clear
+    builder.clear()
 
     builder("x").comma("2")
     assert builder == "x, 2"
-    builder.clear
+    builder.clear()
 
     builder("x").end()("2")
     assert builder == "x;\n2"
-    builder.clear
+    builder.clear()
 
     builder("x").par("2")
     assert builder == "x (2)"
-    builder.clear
+    builder.clear()
 
     builder("x").quote("2")
     assert builder == 'x "2"'
-    builder.clear
+    builder.clear()
 
     builder("x").dot("2")
     assert builder == "x.2"
-    builder.clear
+    builder.clear()
 
     builder("x").placeholders("2")
-    assert builder == "x (?1)"
-    builder.clear
+    assert builder == "x (?)"
+    builder.clear()
 
     builder("x").placeholders("2", par=False)
-    assert builder == "x ?1"
-    builder.clear
+    assert builder == "x ?"
+    builder.clear()
 
     builder.SELECT("*").FROM("Table")
     assert builder.as_string() == "SELECT * FROM Table"
@@ -95,13 +114,13 @@ def test_join():
     qb = QueryBuilder()
     with pytest.raises(SyntaxError):
         qb.join("table", as_="t2", on="t1.id = t2.id", using_cols=["id"])
-    qb.clear
+    qb.clear()
 
     # test using_cols
     assert (
         qb.join("table", as_="t2", using_cols=["id"]) == "JOIN table AS t2 USING (id)"
     )
-    qb.clear
+    qb.clear()
 
     (
         qb.SELECT("t1.name", "t2.name")
@@ -117,33 +136,32 @@ def test_join():
 def test_edgecases():
     qb = QueryBuilder()
     assert qb.dot() == "."
-    qb.clear
+    qb.clear()
     assert qb.dot("x") == ".x"
-    qb.clear
+    qb.clear()
 
     assert qb.comma == ","
-    qb.clear
+    qb.clear()
     assert qb.comma("x") == ", x"
-    qb.clear
+    qb.clear()
 
     assert qb.end()("x") == ";\nx"
-    qb.clear
+    qb.clear()
 
     assert qb.from_("Table", as_="t") == "FROM Table AS t"
-    qb.clear
+    qb.clear()
     assert qb.from_("Table") == "FROM Table"
-    qb.clear
+    qb.clear()
     assert qb.join("Table") == "JOIN Table"
-    qb.clear
+    qb.clear()
     assert qb.join("Table", using_cols="id") == "JOIN Table USING (id)"
-    qb.clear
+    qb.clear()
     assert qb.join("Table", using_cols=["id", "name"]) == "JOIN Table USING (id, name)"
-    qb.clear
+    qb.clear()
     assert qb.end(False) == ";"
-    qb.clear
+    qb.clear()
     assert qb.end() == ";\n"
-    qb.clear
+    qb.clear()
     assert qb.end().SELECT == ";\nSELECT"
-    qb.clear
+    qb.clear()
     assert qb.end(False).SELECT == "; SELECT"
-

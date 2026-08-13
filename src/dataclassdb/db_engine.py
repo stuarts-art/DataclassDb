@@ -70,7 +70,7 @@ class DbEngine(StringBuilder):
                 self.connection.commit()  # type: ignore
             return output
         finally:
-            self.clear
+            self.clear()
 
     def execute_one(self, *args, sql_str=None, commit=False, as_dict=False):
         return self.execute(
@@ -83,7 +83,8 @@ class DbEngine(StringBuilder):
         if not self.connection:
             raise ValueError("Connection must be set to use sql commands.")
         try:
-            params = tuple(args) if args else ()
+            params = tuple(self.params) + (tuple(args) if args else ())
+
             if sql_str is None:
                 query_str = str(self)
             else:
@@ -121,7 +122,7 @@ class DbEngine(StringBuilder):
                 self.connection.commit()
             return rows
         finally:
-            self.clear
+            self.clear()
 
     def execute_many(self, *args, sql_str=None):
         if not self.connection:
@@ -151,4 +152,4 @@ class DbEngine(StringBuilder):
 
             cur.executemany(sql_str, args)
         finally:
-            self.clear
+            self.clear()

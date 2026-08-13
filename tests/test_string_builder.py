@@ -21,7 +21,7 @@ def test_add(inputs, expected, kwargs):
     builder = StringBuilder()
     builder.add(*inputs, **kwargs)
     assert str(builder) == expected
-    builder.clear
+    builder.clear()
     builder(*inputs, **kwargs)
     assert str(builder) == expected
 
@@ -44,38 +44,38 @@ def test_string_builder_call():
     builder = StringBuilder()("Test words")
     assert str(builder) == "Test words"
 
-    builder.clear
+    builder.clear()
     assert str(builder) == ""
 
     assert str(builder("a", "b", "c")) == "a, b, c"
-    builder.clear
+    builder.clear()
 
     assert str(builder("a", "b", "c", commas=False)) == "a b c"
-    builder.clear
+    builder.clear()
 
     builder()
     assert str(builder) == ""
 
     assert str(builder("a").br()("c", "d")) == "a\nc, d"
-    builder.clear
+    builder.clear()
 
     @dataclass
     class TestDataclass1:
         id: str
 
     assert str(builder(TestDataclass1)) == "TestDataclass1"
-    builder.clear
+    builder.clear()
 
     assert str(builder(None)) == ""
 
-    builder.clear
+    builder.clear()
 
     with pytest.raises(ValueError):
         builder.add_func()
 
-    builder.clear
+    builder.clear()
     builder.add("Hello World", newline=True)
-    builder.clear
+    builder.clear()
     builder.add(newline=True)
 
 

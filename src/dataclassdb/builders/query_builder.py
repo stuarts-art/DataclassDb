@@ -4,13 +4,13 @@ from typing import Self
 import dataclassdb.builders.list_utils as lu
 from dataclassdb.builders.function_builder import FunctionBuilder
 from dataclassdb.builders.statement_builder import StatementBuilder
-from dataclassdb.db_engine import DbEngine
 from dataclassdb.dataclass_types import IsDataclass
+from dataclassdb.db_engine import DbEngine
 from dataclassdb.utils import PragmaTableInfo
 
 
 class QueryBuilder(DbEngine, StatementBuilder, FunctionBuilder):
-    _affinity_map = {
+    _affinity_map = {  # noqa: RUF012
         "INT": "INTEGER",
         "INTEGER": "INTEGER",
         "TINYINT": "INTEGER",
@@ -88,7 +88,24 @@ class QueryBuilder(DbEngine, StatementBuilder, FunctionBuilder):
         return self
 
     def placeholders(self, *args, count=None, par=True) -> Self:
-        return self.add(lu.placeholders(*args, count=count), par=par)
+        """This method appends placeholder `("?","?",...,"?")` to the query matching the length of args.
+        If count is set, it overrides args.
+        If no count is provided, the args are maintained in :param params: and will prepend any params when calling execute.
+
+        Args:
+            args: list of parameters that should be replaced.
+            count (_type_, optional): Number of placeholders (overrides args, does not save replacements.)
+            par (bool, optional): Place parenthesis around replacement string.
+
+        Returns:
+            Self
+        """
+        if count is None:
+            items = lu.flatten(*args)
+            self.params.extend(items)
+            return self.add(lu.placeholders(*items), par=par)
+        else:
+            return self.add(lu.placeholders(*args, count=count), par=par)
 
     def get_current_fields(self, _data_class) -> list[PragmaTableInfo]:
         query = QueryBuilder().PRAGMA.Table_info(_data_class)
@@ -102,8 +119,6 @@ class QueryBuilder(DbEngine, StatementBuilder, FunctionBuilder):
             .FROM("sqlite_schema")
             .WHERE("name")
             .eq.quote(_data_class)
-            # .AND("name")
-            # .eq.quote(_data_class)
         ).execute_one()
         if not row:
             return []
